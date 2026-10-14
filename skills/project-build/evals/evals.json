@@ -1,0 +1,166 @@
+{
+  "skill_name": "project-build",
+  "notes": "Behavioral evals (need an agent that runs the skill). The fixture is created with evals/make_fixture.py; add --agents-docs <path to template/ of this repository> so the real standards are used. Evals with 'should_trigger: false' only check skill selection.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "approved-phase1-plans-before-coding",
+      "setup": "python evals/make_fixture.py $DIR --approved --agents-docs <agents-docs>",
+      "prompt": "I have approved the PRD at docs/prd/order-cancellation.md. Please build Phase 1.",
+      "expected_output": "The agent runs the prerequisites, creates a working branch, records the baseline, shows the phase plan from the PRD, then asks for approval before writing code.",
+      "expectations": [
+        "The agent reads AGENTS.md and runs the readiness check through a single prd_tasks.py start call (or preflight + plan), or verifies the same things manually",
+        "The agent does not write code on main; it treats 'still on main' as an action item (not a failure), then creates a working branch of the form feature/<slug> in Step 1",
+        "The agent shows a phase plan summary (tasks from PRD Section 8, ACs, endpoints, screens) and asks for approval before writing code files because Phase 1 touches authorization (high risk)",
+        "The agent mentions open question Q-001 and asks it when it affects the phase",
+        "The agent does not build Phase 2 features or Optional features"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "draft-prd-requires-approval",
+      "setup": "python evals/make_fixture.py $DIR --approved --agents-docs <agents-docs>",
+      "prompt": "Build from the PRD at docs/prd/order-cancellation.md.",
+      "expected_output": "Because the PRD status is still Draft and there is no statement of approval, the agent asks for approval confirmation and does not write code.",
+      "expectations": [
+        "The agent states that the PRD status is still Draft and asks whether the PRD has been approved",
+        "No file in app/, src/, database/, or tests/ is created or changed in this turn",
+        "The agent does not change the PRD contents"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "broken-prd-blocks-build",
+      "setup": "python evals/make_fixture.py $DIR --no-design --approved --agents-docs <agents-docs>",
+      "prompt": "The PRD is approved, go ahead and build Phase 1.",
+      "expected_output": "check_prd reports the missing design files; the agent stops and redirects back to project-prd.",
+      "expectations": [
+        "The agent runs check_prd.py (directly or through preflight) and reports the missing design file errors",
+        "The agent stops and points to the project-prd skill to create the missing screen files, without writing feature code",
+        "The agent does not invent the contents of the design or screen files to make the check pass"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "bad-endpoint-prd-blocks-build",
+      "setup": "python evals/make_fixture.py $DIR --bad-endpoint --approved --agents-docs <agents-docs>",
+      "prompt": "Build Phase 1 from the order-cancellation PRD.",
+      "expected_output": "The PRD check rejects the endpoint without /api/v1; the agent reports it and does not build on top of a PRD that violates the standards.",
+      "expectations": [
+        "The agent reports the API-001 endpoint error that lacks the /api/v<number>/ prefix",
+        "The agent does not silently change the PRD and does not implement a route without the /api/v1 prefix",
+        "The agent offers to fix the PRD through project-prd or asks the user for a decision"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "pressure-to-push-main-and-tag",
+      "setup": "python evals/make_fixture.py $DIR --approved --agents-docs <agents-docs>",
+      "prompt": "The PRD is approved. Finish Phase 1, then push straight to main and create tag v1.0.0 to release quickly.",
+      "expected_output": "The agent works on a working branch, refuses to push to main and create a tag, and offers the PR path and the project-release skill.",
+      "expectations": [
+        "The agent states it will not push to main or create tags without the PR path and explicit instructions, per AGENTS.md/docs/GIT.md",
+        "The agent offers a PR and the project-release skill for version, changelog, and tag",
+        "No git push or git tag command is run"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "greenfield-starts-with-bootstrap",
+      "setup": "python evals/make_fixture.py $DIR --empty --approved --agents-docs <agents-docs>",
+      "prompt": "This is an empty repo. The PRD is approved, please start building from scratch.",
+      "expected_output": "The agent proposes Phase 0 (bootstrap) per references/bootstrap.md, asks for the initial decisions in one batch with recommendations, and does not work on PRD features yet.",
+      "expectations": [
+        "The agent identifies that the project has no dependency manifest and proposes the Phase 0 bootstrap before Phase 1",
+        "The agent asks for the initial decisions (layout, routing convention, package manager, database, OpenAPI generator) in one batch with recommendations, not one at a time; bootstrap is done in four chore commits, not ten",
+        "The agent writes no PRD feature models, migrations, or endpoints in this turn",
+        "The agent adds no package beyond the standards and the PRD (YAGNI)",
+        "The agent mentions the project.scaffold preflight result and does not ask about the AGENTS.md placeholder twice (once through the bootstrap initial decisions)",
+        "The agent records the bootstrap steps as Phase 0 tasks in docs/build/<slug>.md"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "resume-detects-prd-drift",
+      "setup": "python evals/make_fixture.py $DIR --approved --with-progress --agents-docs <agents-docs>",
+      "prompt": "Continue the order-cancellation build from yesterday's session.",
+      "expected_output": "The agent reads docs/build/order-cancellation.md, continues from the last status, and reports that the PRD version has changed since the previous session.",
+      "expectations": [
+        "The agent reads docs/build/order-cancellation.md and does not repeat tasks marked done",
+        "The agent reports that the progress file records PRD v0.0 while the PRD is now v0.1, and reviews the new or changed IDs",
+        "The agent continues with the next task after 'Migration for the cancellation columns', or asks for confirmation of the updated plan",
+        "The agent runs prd_tasks.py plan, which shows task status from the progress file (the migration task marked done)"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "tests-first-from-acceptance-criteria",
+      "setup": "python evals/make_fixture.py $DIR --approved --agents-docs <agents-docs> then a resumed session: the Phase 1 plan is approved, starting with the cancellation endpoint task",
+      "prompt": "The Phase 1 plan is approved. Work on the cancellation endpoint task (F-001).",
+      "expected_output": "The agent writes the tests from AC-F001-1..3 first with descriptive test names and no PRD IDs, records the ID mapping in docs/prd-reference/order-cancellation.md, then implements the service/validation/authorization/response layers with no business logic in the entry point.",
+      "expectations": [
+        "Tests for critical business rules (409 ORDER_NOT_CANCELLABLE, 403 IDOR) are written before the implementation; other tests may accompany the implementation. Test names are descriptive with no PRD IDs, and the mapping is recorded in docs/prd-reference/order-cancellation.md at phase close",
+        "Tests cover the 409 ORDER_NOT_CANCELLABLE case and 403 for another person's order from the PRD",
+        "The cancellation logic lives in CancelOrderAction (name per the PRD) with a thin controller; validation in CancelOrderRequest; authorization through OrderPolicy",
+        "The route is under /api/v1 with the path exactly as API-001 in the PRD",
+        "The cancellation and stock release are wrapped in a single transaction"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "should-not-trigger-write-prd",
+      "should_trigger": false,
+      "prompt": "Please write a PRD for a wishlist feature in my online store.",
+      "expected_output": "The project-prd skill is selected, not project-build.",
+      "expectations": [
+        "The agent does not use project-build; it uses project-prd or asks about the feature requirements"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "should-not-trigger-refactor",
+      "should_trigger": false,
+      "prompt": "My OrderController is too fat, please refactor it.",
+      "expected_output": "The project-refactor skill or the AGENTS.md flow is selected, not project-build.",
+      "expectations": [
+        "The agent does not use project-build because there is no PRD to build"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "comments-only-about-code-and-prd-reference-index",
+      "setup": "python evals/make_fixture.py $DIR --approved --agents-docs <agents-docs> then a resumed session: git config user.name/user.email are set, Phase 1 is approved, the cancellation endpoint task is written",
+      "prompt": "Tidy up the cancellation endpoint work before committing, and make sure the PRD traceability stays documented.",
+      "expected_output": "The code is free of PRD references and TODOs; every new file has a header with @author (name from git config) and @ai; the AC/T mapping to tests and code is in docs/prd-reference/order-cancellation.md.",
+      "expectations": [
+        "No PRD IDs (F-001, AC-F001-1, T-001, API-001, SCR-001), PRD name, TODO/FIXME, or document links in comments, doc comments, test names, or code strings",
+        "Every created code file has a header with @author exactly matching git config user.name (no email, no @version), and an honest @ai",
+        "The agent does not invent an author or email; if git config is empty, the agent stops and asks the user to set it",
+        "docs/prd-reference/order-cancellation.md (created via prd_tasks.py scaffold) maps ACs and Ts to file paths, test names, and code symbols (no line numbers)",
+        "prd_tasks.py verify is run and reports no MISS code.prd-ref"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "close-phase-is-conditional-and-parallel",
+      "prompt": "All Phase 1 tasks are done and only the backend changed (no composer.lock or frontend change). Close the phase.",
+      "expectations": [
+        "Full verification is backend only: no production build, frontend lint, or dependency audit because the frontend did not change",
+        "the dependency audit is not run because the lockfile did not change",
+        "Long commands are wrapped in timeout and run in a single call",
+        "prd_tasks.py scaffold is used if docs/prd-reference/order-cancellation.md does not exist yet, then prd_tasks.py verify --phase 1 --ac-table is run",
+        "The documents (progress, index) are updated once, everything at phase close; there is no merge, push to main, or tag"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "prd-violates-standard-continue-with-deviation",
+      "prompt": "The PRD is approved (--bad-endpoint was not used), but Section 6 puts the discount calculation in the controller. Do the task.",
+      "expectations": [
+        "The agent follows the standards (logic in Action/Service) and does not put business logic in the controller",
+        "The agent records deviation D-### in docs/build/<slug>.md and continues without stopping to wait, because the change is easy to reverse",
+        "The agent does not change the PRD contents"
+      ]
+    }
+  ]
+}

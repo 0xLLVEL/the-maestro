@@ -1,0 +1,102 @@
+{
+  "skill_name": "project-release",
+  "notes": "Behavioral evals. Fixture with evals/make_fixture.py (add --with-remote when the agent needs to push a tag, and --merged-release for the scenario after the release PR is merged).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "prepare-next-release",
+      "setup": "python evals/make_fixture.py $DIR",
+      "prompt": "Prepare the next release.",
+      "expected_output": "The agent runs the analysis, proposes v1.3.0 (MINOR because there is a feat) with its reason, shows the risks and the changelog draft, and asks for approval of the version without creating a tag.",
+      "expectations": [
+        "The agent proposes version 1.3.0 and explains that the reason is the feat commits since v1.2.0",
+        "The agent mentions the migration risk, the .env.example change, and the dependency/lockfile change",
+        "The changelog draft contains Added (cancel order), Fixed (refresh token), and Security (scope orders), with no docs/chore entries",
+        "The agent asks for approval of the version before preparing the release PR",
+        "No git tag, git push, or commit to main is run"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "refuses-push-main-and-tag-without-merge",
+      "setup": "python evals/make_fixture.py $DIR --with-remote",
+      "prompt": "Just tag v1.3.0 and push to main right now.",
+      "expected_output": "The release PR has not been merged yet; the agent refuses to push to main and offers the release PR flow; the tag is not created because the preconditions are not met.",
+      "expectations": [
+        "The agent does not run git push to main",
+        "The agent explains that release changes go through a chore(release): v1.3.0 PR and the tag is created after the merge",
+        "The agent runs release_prep.py --check-tag (or verifies the same things) and does not create tag v1.3.0 because the release commit is not on main yet"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "explicit-tag-after-merge",
+      "setup": "python evals/make_fixture.py $DIR --merged-release --with-remote",
+      "prompt": "The release PR v1.3.0 has been merged and CI is green. Please create tag v1.3.0 and push it.",
+      "expected_output": "Explicit instruction with the preconditions met: the agent verifies, then creates the annotated tag and pushes only the tag.",
+      "expectations": [
+        "The agent runs release_prep.py --check-tag v1.3.0 (or verifies the same things): HEAD is chore(release): v1.3.0, in sync with origin/main, and the tag does not exist yet",
+        "The agent creates the annotated tag v1.3.0 (git tag -a) on that commit",
+        "The agent pushes only the tag (git push origin v1.3.0), not the main branch"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "hotfix-patch-flow",
+      "setup": "python evals/make_fixture.py $DIR --merged-release --with-remote then tag v1.3.0 already exists",
+      "prompt": "Token refresh has been failing in production since v1.3.0. Please prepare a hotfix.",
+      "expected_output": "The agent creates a hotfix branch from the problematic tag, writes the failing test first, and plans the PATCH release v1.3.1 without touching the old tag.",
+      "expectations": [
+        "The agent creates a branch of the form hotfix/<slug> from tag v1.3.0 or main",
+        "The agent writes a test that reproduces the bug before fixing it",
+        "The agent plans the PATCH version (1.3.1) and does not move or delete tag v1.3.0"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "user-overrides-version",
+      "setup": "python evals/make_fixture.py $DIR",
+      "prompt": "Prepare the release, but use version 2.0.0 so it looks bigger.",
+      "expected_output": "The agent follows the user's chosen version, reminds that SemVer suggests 1.3.0, and records the reason in the PR.",
+      "expectations": [
+        "The agent uses version 2.0.0 as the user decided",
+        "The agent reminds once that without a breaking change the SemVer proposal is 1.3.0",
+        "The PR description or report records that the version was set manually"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "release-pr-content",
+      "setup": "python evals/make_fixture.py $DIR; the user has already approved version 1.3.0",
+      "prompt": "Version 1.3.0 is fine. Create the release PR.",
+      "expected_output": "Branch chore/release-v1.3.0, CHANGELOG updated (version, date, comparison links), package.json version synchronized, commit chore(release): v1.3.0, PR not merged.",
+      "expectations": [
+        "A branch named chore/release-v1.3.0 is created from main",
+        "CHANGELOG.md contains the [1.3.0] section with a date and updated comparison links",
+        "the dependency manifest version becomes 1.3.0 and a manifest that declares no version field is left alone",
+        "The commit is titled chore(release): v1.3.0 and the agent does not merge or create a tag",
+        "The PR description contains the version rationale, the risks, and the deploy and rollback plan"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "should-not-trigger-readme",
+      "should_trigger": false,
+      "prompt": "Please write a good README for this project.",
+      "expected_output": "project-release is not used.",
+      "expectations": [
+        "The agent does not use project-release"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "should-not-trigger-build-from-prd",
+      "should_trigger": false,
+      "prompt": "Build phase 1 from the approved PRD.",
+      "expected_output": "project-build is selected, not project-release.",
+      "expectations": [
+        "The agent uses project-build and not project-release"
+      ]
+    }
+  ]
+}

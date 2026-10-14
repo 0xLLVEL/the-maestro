@@ -60,7 +60,7 @@ Create `docs/build/<slug>.md` from `references/progress-template.md` (concise: t
 ### Step 3: Cycle per task (or per group of small tasks)
 Details per layer are in `references/build-playbook.md`; read only the relevant parts.
 1. **Write the tests and the implementation** in the right layer (`docs/BACKEND.md`, `docs/FRONTEND.md`) with class, endpoint, column, and translation key names exactly as in the PRD. `@author`/`@ai` headers on created files and public API doc comments according to `docs/CODE-DOCUMENTATION.md`; descriptive test names without IDs.
-2. **UI:** read `docs/design/screens/<slug>.md` and build the layout, components, and states it specifies. Reuse existing components before creating new ones.
+2. **UI:** read `docs/design/screens/<slug>.md` and build its skeleton first: semantic HTML tags with no styling at all, exactly the structure the screen file specifies. Styling is a separate later step, only when the user asks for it; commit skeleton and styling separately. Reuse existing components before creating new ones.
 3. **Targeted verification and commit in one call:** related tests + lint/format/typecheck only on the changed files (the formatter's changed-files mode, the linter on single files, the test runner's `--filter`), then `git add -A && git diff --staged --stat && git commit -m "<type(scope): ...>"`. The result must be the same as or better than the baseline.
 4. **Ask the user before continuing** for auth/authorization/payment, a destructive migration, a new dependency, or a breaking API change (`AGENTS.md` § 4).
 

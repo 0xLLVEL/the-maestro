@@ -44,7 +44,8 @@ In chat (in the user's language), **a 5-8 line summary**: goal, feature count pe
 ### Step 6: Screen files (after the PRD is approved)
 Screen files are the only design artifact. Write them in one batch:
 1. `docs/design/screens/<slug>.md` for each `SCR-###`, **only the relevant parts**: the layout, the components to reuse or create, and the states.
-2. Verify:
+2. Each screen file carries a **skeleton**: the screen structure as plain HTML tags with **no styling at all** (no `class`, no `style`, no CSS). Visual values (color, spacing, typography) go in only if the user already chose them; otherwise the skeleton stays unstyled until the user asks for visual design.
+3. Verify:
    ```bash
    python scripts/check_prd.py docs/prd/<feature-slug>.md --root . --require-design-files
    ```

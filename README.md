@@ -40,6 +40,37 @@ tools/check_kit.py   keeps this repository consistent (see Development)
 
 The standards belong to **your project**, not to the skills: every skill reads `AGENTS.md` and `docs/` first.
 
+## The pieces in detail
+
+**`AGENTS.md` — the entry point.** The one file every agent reads first: project context
+(stack and commands, detected from your manifests once), core principles
+(DRY, KISS, YAGNI, SOLID, SoC, readability, documentation, testability), workflow by
+task size with pace rules (read only what you need, verify per layer), behavior rules
+(never invent, ask-or-proceed, scope discipline), a definition of done, and absolute
+prohibitions (no `.env` games, no pushing to `main`, no gaming tests or CI).
+
+**Rule set (`docs/`, twelve files).** The details behind the principles, one file per
+area: code standards and documentation, backend, frontend, API, database and
+performance, security, testing, Git, CI/CD, plus rebuild procedure and a one-minute
+`QUICK-RULES.md` card. The agent opens only the files its task touches — never all twelve.
+
+**Skills (`skills/`, five folders).** Instructions that turn the guide into a workflow,
+each with scripts that verify the work:
+- `project-prd` — asks one batched round of questions, writes an executable PRD plus
+  screen skeletons; `check_prd.py` validates structure and IDs.
+- `project-build` — builds phase by phase on a working branch; `prd_tasks.py` checks
+  readiness, prints the plan, and verifies every requirement is connected to tests and code.
+- `project-audit` — read-only scan of the whole project; `scan.py` reports heuristics
+  across stacks, the agent confirms each by reading before it counts.
+- `project-refactor` — applies the approved audit plan module by module with
+  characterization tests and a before/after comparison (`compare_scans.py`).
+- `project-release` — derives the version from commits, assembles the changelog, opens
+  the release PR; `release_prep.py` guards tags and preconditions.
+
+**Consistency guard (`tools/check_kit.py`).** Keeps the kit itself honest: template stays
+stack-neutral, every cited rule id exists in the scanner, duplicated files are identical,
+and version markers agree. CI runs it on Linux, Windows, and macOS.
+
 ## Quick start
 
 1. **Copy the guide into your project.** Copy `template/AGENTS.md` and `template/docs/` to the root of your repository.

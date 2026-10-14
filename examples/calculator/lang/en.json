@@ -1,0 +1,9 @@
+{
+  "calculator.title": "Calculator",
+  "history.title": "History",
+  "history.empty": "No calculations yet.",
+  "history.clear": "Clear history",
+  "history.delete": "Delete entry",
+  "error.cannot-divide": "Cannot divide by zero.",
+  "error.unknown-operator": "Unknown operator."
+}

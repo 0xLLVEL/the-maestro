@@ -254,6 +254,15 @@ def main():
                 continue
             if slug and not (root / "docs" / "design" / "screens" / f"{slug}.md").exists():
                 (errors if strict else warnings).append(f"{sid}: docs/design/screens/{slug}.md does not exist yet.")
+                continue
+            if slug:
+                stext = (root / "docs" / "design" / "screens" / f"{slug}.md").read_text(encoding="utf-8", errors="replace")
+                tpl = [(lang, code) for lang, code in re.findall(r"```(\w*)\s*\n(.*?)```", stext, re.S)
+                       if lang.lower() in ("html", "jsx", "tsx", "vue", "svelte")]
+                if not tpl:
+                    warnings.append(f"{sid}: screen file has no skeleton block (an ```html/jsx/tsx/vue/svelte fence with plain tags, no styling).")
+                elif any(re.search(r"\b(className|class|style)\s*=", code) for _, code in tpl):
+                    warnings.append(f"{sid}: skeleton block contains styling (class/className/style); keep the skeleton unstyled.")
 
     print(f"PRD: {a.prd} ({n_lines} lines)")
     print(f"Features: {len(features)} (essential: {len(essential)}) | AC: {len(ac_ids)} | Screens: {len(screens)} | Endpoints: {len(apis)} | Extra tests: {len(tests)}")

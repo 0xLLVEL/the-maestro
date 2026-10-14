@@ -29,7 +29,7 @@
 - Test names explain the behavior, without PRD IDs. Do not delete, skip, or circumvent tests, lint, or CI.
 
 ## UI
-- Reuse existing components; every state (loading, empty, error) is implemented; AA contrast, visible focus, and `prefers-reduced-motion` are respected (`docs/FRONTEND.md`).
+- Reuse existing components; new UI starts as an unstyled HTML skeleton, styling only when the user asks; every state (loading, empty, error) is implemented; AA contrast, visible focus, and `prefers-reduced-motion` are respected (`docs/FRONTEND.md`).
 
 ## Security and Git
 - Authoritative validation and authorization in the backend; the frontend is only for UX. Anything reachable from the browser (including frontend endpoints and actions) is a public endpoint. No secrets in code, logs, or commits; values with the framework's public env prefix are public. Details: `docs/SECURITY.md`.

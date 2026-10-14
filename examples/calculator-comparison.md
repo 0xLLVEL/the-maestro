@@ -67,6 +67,17 @@ logic plus tests, skeleton UI, styling, PRD-code index), each verified with
 | Static checks | none | `check_prd.py` clean; `verify` 12 OK / 1 explained MISS (page heuristic misses root-level static pages) |
 | Time (rough) | ~10 min, 0 roundtrips | ~1 hour, 3 roundtrips (questions, PRD approval, styling) |
 
+## Prompts used (verbatim, Indonesian)
+
+Kit version — user: *"test langsung di real world case pakai agents nya. buat saja
+aplikasi kalkulator dari html dan javascript"*. Agent ran `project-prd` (one batched
+question round) and `project-build` (phased, with approval gates). Further user
+inputs: PRD answers, *"setujui, tapi buat di dalam folder example"*, *"coba kasih
+desain"* (styling approval).
+
+No-kit version — user: *"coba buat lagi aplikasi kalkulator tanpa menggunakan skills
+maupun agents.md"*. Agent worked freestyle: no guide or skill files consulted, one pass.
+
 ## Verdict
 
 For a throwaway calculator the freestyle version is rational: the kit's overhead (PRD,

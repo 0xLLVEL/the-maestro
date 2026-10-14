@@ -83,6 +83,19 @@ in bootstrap (config layer; accepted), one HIGH `sql.string-built` on a template
 that interpolates only a fixed `WHERE` fragment with fully parameterized values (verified
 safe — true-positive shape, false-positive risk), and the long-function breach above.
 
+## Prompts used (verbatim, Indonesian)
+
+Both versions — user: *"sekarang coba buat aplikasi blog online menggunakan nodejs dan
+sqlite. buat 2 versi, dengan kit dan tidak dengan kit"*. Kit side: `project-prd` (one
+batched question round) then `project-build` with approvals (*"gas"* twice — PRD
+approval and build go-ahead; styling direction "dengan arahan gaya" without specifics,
+recorded as assumption A-002: light readable style). No-kit side: freestyle, same scope,
+no guide or skill files consulted.
+
+Operator bias, stated plainly: the same agent built both sides and could not un-know
+the kit standards — the freestyle blog still uses parameterized SQL and owner checks,
+so it is likely *better* than a true no-kit baseline. The measured gap is a lower bound.
+
 ## Verdict
 
 - Cost for this scope: several-fold time on this run, 4 roundtrips, ~10x lines (mostly

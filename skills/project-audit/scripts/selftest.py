@@ -302,7 +302,7 @@ def main():
         "c.rb": "User.where(\"a = #{x}\")\nbyebug\nENV[\"KEY\"]\n",
         "d.php": "<?php\ndd($x);\n$y = $request->all();\nDB::raw(\"select * from t where a = $a\");\n",
     }
-    mismatches, files, total_findings = [], 0, 0
+    mismatches, files, total_findings, snippet_findings = [], 0, 0, 0
     for rel, text in [(str(c), c.read_text(encoding="utf-8", errors="ignore")) for c in corpus] + list(snippets.items()):
         ext = Path(rel).suffix
         lines = text.splitlines()
@@ -313,11 +313,17 @@ def main():
             got_plain = sorted(set(d.iter_line_findings(rel, ext, lines, is_test, stop, ids, False, d.SECRET_PATTERNS, d.SECRET_SKIP)))
             d.PREFILTER = True
             total_findings += len(want)
+            if rel in snippets:
+                snippet_findings += len(want)
             if want != got or want != got_plain:
                 mismatches.append((rel, is_test, sorted(set(want) ^ set(got))[:3]))
         files += 1
     check(f"line rules: optimised == reference on {files} files (prefilter on and off)", not mismatches, str(mismatches[:3]))
-    check("the comparison is not vacuous (many findings compared)", total_findings > 200, str(total_findings))
+    # The corpus includes interpreter stdlib files, whose count varies per Python version,
+    # so the vacuity guard is anchored on the fixed snippets (identical on every version).
+    check("the comparison is not vacuous (fixed snippets yield findings)", snippet_findings >= 25, str(snippet_findings))
+    check("the comparison is not vacuous (corpus adds findings beyond the snippets)",
+          total_findings > snippet_findings + 10, str(total_findings))
     check("string stripping is unchanged", all(d.strip_strings(s) == _re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`', '""', s)
           for s in ["a = 'x' + \"y\"", "plain line", "f(`t ${x}`)", "it\'s", ""]), "")
 

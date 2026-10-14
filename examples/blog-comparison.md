@@ -1,62 +1,102 @@
-# Large-scale comparison: online blog, with kit vs without kit
+# Blog comparison: freestyle vs kit workflow (Phase 1: auth and posts)
 
-Projection for one realistic mid-size product built by AI agents over six months.
-Blog scope (3 phases, 11 features): public reader (post list with pagination, post page,
-SEO metadata, RSS), accounts (register, login, roles reader/author/admin), authoring
-(drafts, markdown editor, image upload, scheduled publish), engagement (comments with
-spam guard, likes), admin (moderation queue, user management).
+Same scope built twice with zero-dependency Node.js 26 and SQLite: `examples/blog-nokit`
+(one pass, no guide) vs `examples/blog-kit` (PRD v0.2, 4 screen skeletons, auth and post
+services, 14 tests, light theme, PRD-code index). All numbers are measured; time figures
+are rough retrospective estimates from a single run, not stopwatch measurements — they
+include chat roundtrips. The hard, countable proxies are commits, files, and roundtrips
+(8 vs 1 commits, 4 vs 0 roundtrips).
 
-Status labels: **measured** (from the calculator experiment or kit self-tests),
-**projected** (reasoned estimate, stated assumptions), **unknown** (no data).
+## File structure
 
-## Lifecycle comparison
+Without kit — one file does everything (104 lines):
 
-### Month 0-1: scaffolding and first features
+```text
+examples/blog-nokit/
+  blog.js   # routing + SQL + HTML + CSS + auth + posts
+```
 
-| Aspect | Without kit | With kit |
+With kit — one layer per file, dependencies point inward:
+
+```text
+examples/blog-kit/
+  server.js   # thin routes: parses, calls services, responds
+  auth.js     # hashing, users, sessions, rate limit
+  posts.js    # post rules, visibility, pagination
+  views.js    # HTML templates + escaping (no logic)
+  db.js       # schema only
+  styles.css  # styling only (separate commit)
+  lang/en.json
+  tests/auth.test.js
+  tests/http.test.js
+  scripts/seed.js
+  docs/prd/blog-phase-1.md
+  docs/design/screens/   # 4 screens with unstyled skeletons
+  docs/build/blog-phase-1.md
+  docs/prd-reference/blog-phase-1.md
+```
+
+## Code style
+
+| Practice | Without kit (`blog.js`) | With kit |
 |---|---|---|
-| Setup | agent picks stack from memory; fast (projected: hours) | first-run detection fills `AGENTS.md` from manifests, then builds (projected: +1 day of docs) |
-| Auth foundation | works, but authorization shape varies per endpoint (measured pattern in freestyle code: mixed styles) | `project-prd` forces the Auth column per endpoint; deny-by-default reviewed once (projected) |
-| Early tests | happy-path only (measured: 0 tests in the freestyle demo) | every AC becomes a test (measured: 6/6 ACs connected in the demo) |
+| Layering | SQL, HTML, and auth checks inline in route handlers | handlers call `auth.js`/`posts.js`; no SQL outside services; `views.js` holds no logic |
+| Error shape | ad hoc strings (`{error: 'forbidden'}`) mixed with pages | uniform `{error: {code, message}}` (`UNAUTHORIZED/FORBIDDEN/NOT_FOUND/VALIDATION/CONFLICT`) |
+| Validation | none: empty titles accepted, fixed page size | username/password/title/body/status/page validated at the service boundary, 422 shapes |
+| Naming | `me`, `J`, `H`, `clr`, `neg`, single letters (`u`, `r`, `p`) | `sessionUser`, `sendJson`, `parsePaging`, `atLeast` |
+| Magic values | `7 * 864e5`, `LIMIT 10`, `32` inline | `SESSION_TTL`, `LOGIN_LIMIT`, `MAX_PER_PAGE`, `MAX_BODY` constants |
+| Function size | one ~90-line request callback | all units small except `createApp` (169 lines — caught by the scanner, see below) |
 
-### Month 2-3: feature rush (comments, uploads, admin)
+## Comment style
 
-| Failure mode | Without kit (projected) | With kit (projected) |
+| Practice | Without kit | With kit |
 |---|---|---|
-| Mass assignment on profile/post update | likely: no checklist forces `$fillable`/allowlist review | scanner flags `php.mass-assignment` patterns; gaps remain for filtered-but-unvalidated input (known detector blind spot) |
-| Unvalidated image upload (size/MIME, signed URLs) | likely: `SECURITY.md`-equivalent rarely exists freestyle | rule exists, but **no detector**; depends on reviewer discipline (known gap) |
-| N+1 on post list and comment threads | likely at 100+ rows | rule exists, but **no detector** for loops; characterization tests only if the agent writes them |
-| Missing rate limit on login/comments | likely | rule exists, but **no detector**; same discipline dependency |
-| Breaking API change for the mobile reader | discovered by users | `API.md` + OpenAPI update is a Definition-of-Done item; enforced by review, not by script |
+| File headers | none (`comment.missing-metadata`) | `@author`/`@ai` on every created file |
+| Doc comments | none | one-sentence contract per public unit; doc comments 100% of 33 units per the scanner |
+| Dead comments | one `TODO` left in code (`TODO: verify cookie signature` — and the signature is indeed never verified) | no TODOs, no commented-out code, no PRD references (one self-found violation was fixed the same session) |
 
-Honest summary of this phase: the kit converts "nobody thought about it" into "written rule, human-verified".
-It does **not** convert it into "machine-verified" for auth, upload, N+1, or rate limits today.
+## Commit style
 
-### Month 4-6: maintenance, staff churn, agent-session churn
+Without kit: 1 commit with an informative message, but no trace of decisions.
+With kit: 8 Conventional Commits, one logical change each (planning docs, approval record,
+auth plus tests, posts plus routes plus HTTP tests, styling, PRD fix, PRD-code index,
+comment fix), each staged selectively and verified before committing.
 
-| Aspect | Without kit (projected) | With kit (projected) |
+## Best practice and verification
+
+| Practice | Without kit | With kit |
 |---|---|---|
-| New agent (or human) onboarding | reads code cold; asks the user what the intent was (measured pattern: no traceability artifact exists) | reads PRD + progress + index; resumes from `git log` (measured: the demo resumed across sessions from these files) |
-| Regression from a "small fix" | full suite rarely run; breakage found in production (projected from freestyle habit: no phase-close gate) | layered verification: targeted per task, full suite at phase close (measured in the demo: 9/9 + verify 12 OK) |
-| Stale docs | n/a (no docs to go stale) | **real cost**: PRD/index/progress must be updated on rename or they mislead; the kit has no expiry rule for its own artifacts (known gap) |
-| Audit before a security review | manual, weeks (projected) | `scan.py` baseline in minutes + human confirmation per finding (measured: seconds on the demo; scaling to 500+ files is **unknown** — sampling rules are still undefined) |
+| Tests | 0 (one-off smoke script, uncommitted; next change re-verifies nothing) | 14/14 `node --test`: 6 service-level, 8 end-to-end over HTTP, each mapped to AC/T IDs |
+| Static checks | none | `check_prd` clean; `verify` 33 OK / 13 explained MISS (collectors only recognize framework conventions; every route is exercised live by the HTTP tests) |
+| Security | stored XSS (unescaped output), unverified session signatures, `!==` password compare, no rate limit | escaping everywhere, HMAC verified constant-time (with forgery test), scrypt plus salt, 50/hour login limit, owner-or-admin checks |
+| Time (rough) | ~0.5 h single run incl. smoke-harness debugging | ~2.5 h single run incl. 4 roundtrips and planning docs |
 
-## Cost model (projected, 6 months, 1-3 agents)
+## Scanner evidence (`scan.py` on both)
 
-| Cost | Without kit | With kit |
-|---|---|---|
-| Planning docs | ~0 | PRD per feature (~1-3 h each), screens per new page, index updates per rename |
-| Verification time | low upfront, spikes at incidents | steady: targeted per task, full suite per phase |
-| Rework from escaped defects | high variance (auth, upload, N+1 are the classic blog incidents) | lower variance for covered rules; unchanged for detector blind spots |
-| Onboarding per new contributor | days of code reading + questions | hours of PRD/index reading, **iff** the artifacts were maintained |
+Without kit: 1 file scanned; 4 findings (`console.log`, hardcoded color, `TODO`, missing
+header). The XSS, the missing signature check, and the missing rate limit produced zero
+findings: confirmed detector blind spots.
+
+With kit: 9 files scanned. Findings: 12 hardcoded colors (tokens would be over-engineering
+here; accepted), `console.log` in CLI entry/seed (accepted practice), `process.env` reads
+in bootstrap (config layer; accepted), one HIGH `sql.string-built` on a template literal
+that interpolates only a fixed `WHERE` fragment with fully parameterized values (verified
+safe — true-positive shape, false-positive risk), and the long-function breach above.
 
 ## Verdict
 
-- The kit's payoff is proportional to **lifespan times contributors**, not to feature count.
-  A blog built in a weekend: freestyle wins. The same blog operated for a year with
-  rotating agents: the kit's traceability and gates are the cheaper option **on paper**.
-- "On paper" is doing heavy lifting: three preconditions from the audit are still open —
-  detectors for the risky rules, sampling rules for large repos, and evidence-backed
-  approvals. Until those close, the large-scale advantage is projected, not demonstrated.
-- Next honest step: build the blog's Phase 1 (auth + posts) both ways and measure
-  escaped defects and onboarding time instead of projecting them.
+- Cost for this scope: several-fold time on this run, 4 roundtrips, ~10x lines (mostly
+  docs and tests).
+- What the cost bought, measured: 14 passing tests, 9/9 ACs plus 2/2 scenarios connected,
+  0 known vulnerabilities vs 2 High (XSS, session forgery) plus 4 hardening gaps.
+- Break-even: one stored-XSS incident or one support session answering "why does this
+  code exist" costs more than the upfront hours — true for operated code, false for
+  throwaway code.
+- Scale reading (projected, not measured): payoff grows with lifespan times contributors,
+  not feature count. Preconditions for the large-scale claim: detectors for the risky
+  rules, sampling rules for large repos, evidence-backed approvals (see `ROADMAP.md`).
+
+## Limits
+
+n = 1 task, one operator with a pro-kit bias, no replication; only zero-dependency Node
+was tested; maintenance behavior is projected, not measured.

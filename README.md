@@ -44,9 +44,8 @@ The same apps built twice by the same agent, once freestyle and once through the
 | Calculator (HTML+JS) | 1 file, 0 tests, inline style | PRD + 9/9 tests + skeleton-first UI, styled after approval |
 | Blog Phase 1 (Node+SQLite: auth, posts, pagination) | 1 file; stored XSS and unverified sessions on read | 14/14 tests, 9/9 ACs connected, 0 known vulnerabilities, full traceability |
 
-Details with measured numbers: [calculator comparison](examples/comparison.md),
-[blog results](examples/blog-results.md) (includes code-level comparison),
-[large-scale blog projection](examples/blog-comparison.md),
+Details with measured numbers: [calculator comparison](examples/calculator-comparison.md),
+[blog comparison](examples/blog-comparison.md) (raw numbers, code style, security, scanner evidence),
 [read-only audit of both blog builds](docs/audit/audit-2026-10-14.md).
 
 Honest limits: one task each, one operator, no independent replication. The kit side also

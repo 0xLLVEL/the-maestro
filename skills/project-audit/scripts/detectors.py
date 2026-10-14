@@ -47,18 +47,22 @@ SECRET_PATTERNS = [
     re.compile(r"AKIA[0-9A-Z]{16}"),
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----"),
     re.compile(r"ghp_[A-Za-z0-9]{36}"),
+    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"\bgh[opsu]_[A-Za-z0-9]{20,}"),
+    re.compile(r"\bghsa_[A-Za-z0-9_]{20,}"),
+    re.compile(r"\bAIza[0-9A-Za-z\-_]{35}"),
     re.compile(r"\bsk-[A-Za-z0-9]{20,}"),
     re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),
     re.compile(r"(?i)(api[_-]?key|secret|passwd|password|token|private[_-]?key)[\"']?\s*(?:=>|[:=])\s*[\"'][A-Za-z0-9/+=_\-]{16,}[\"']"),
 ]
-SECRET_SKIP = re.compile(r"(?i)example|your_|changeme|xxxx|placeholder|dummy|<.*>|\$\{|env\(|process\.env|os\.environ|os\.getenv|ENV\[|System\.getenv|os\.Getenv")
+SECRET_SKIP = re.compile(r"(?i)example|your_|changeme|xxxx|placeholder|dummy|<.*>|\$\{")
 
 # --------------------------------------------------------------------------- text helpers
 _STRING_RE = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`(?:\\.|[^`\\])*`')
 _WORD_RE = re.compile(r"[a-z]+")
 _IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 _IDENT_PART_RE = re.compile(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])")
-_SECRET_HINTS = ('"', "'", "AKIA", "BEGIN", "ghp_", "sk-", "xox")
+_SECRET_HINTS = ('"', "'", "AKIA", "BEGIN", "ghp_", "github_pat_", "gho_", "ghu_", "ghs_", "ghr_", "ghsa_", "AIza", "sk-", "xox")
 
 
 def strip_strings(line):
@@ -178,11 +182,11 @@ _UNIVERSAL = [
                 r"|\bconsole\.(?:log|debug|dir)\s*\("),
      "code", (), None),
     ("env.read-outside-config", None,
-     re.compile(r"\bos\.(?:environ|getenv)\s*[\[(]|(?<![\w>:])env\s*\(|process\.env\.[A-Za-z_]\w*"
+     re.compile(r"\bos\.environ(?:\s*[\[(]|\s*\.\s*\w+)|\bos\.getenv\s*\(|\bgetenv\s*\(|(?<![\w>:])env\s*\(|process\.env\.[A-Za-z_]\w*"
                 r"|(?<![\w.])ENV\s*(?:\[|\.fetch\b)|\bos\.Getenv\s*\(|\bSystem\.getenv\s*\("
                 r"|\bEnvironment\.GetEnvironmentVariable\s*\(|\benv::var\s*\("),
      "code", ("notconfig",), None),
-    ("comment.todo", None, re.compile(r"\b(TODO|FIXME|HACK|XXX)\b"), "any", ("raw",), None),
+    ("comment.todo", None, re.compile(r"\b(TODO|FIXME|HACK|XXX)\b", re.I), "any", ("raw",), None),
     ("comment.prd-reference", None,
      re.compile(r"\b(?:F-\d{3}|US-\d{3}|AC-F\d{3}-\d+|SCR-\d{3}|API-\d{3}|T-\d{3}|Q-\d{3})\b"),
      "code", ("raw",), None),
@@ -239,7 +243,7 @@ _LANG_LINE = [
     ("frontend.token-in-browser-storage", JS_EXTS,
      re.compile(r"(?i)(?:localStorage|sessionStorage)\.\s*setItem\s*\([^)]*(?:token|jwt|auth|secret)"), "code", ("raw",), None),
     ("frontend.public-env-secret", JS_EXTS,
-     re.compile(r"\b(?:NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(?:SECRET|PASSWORD|PRIVATE|TOKEN)"),
+     re.compile(r"\b(?:NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(?:SECRET|PASSWORD|PRIVATE|TOKEN|KEY)"),
      "code", (), "variable name"),
     ("react.legacy-api", JS_EXTS,
      re.compile(r"\bforwardRef\s*\(|\.defaultProps\s*=|ReactDOM\.(?:render|hydrate)\s*\(|\.propTypes\s*="), "code", (), None),

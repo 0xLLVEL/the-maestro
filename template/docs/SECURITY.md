@@ -29,7 +29,7 @@ Applies to all new and modified code. Reference: OWASP Top 10.
 - Role/permission checks in the frontend are for UX only. Enforcement is always in the backend.
 
 ## Dependency and supply chain
-- Run the dependency audit command for every stack in CI as well. Apply security patches as soon as possible, including for the frontend framework itself: monitor its security advisories and update to patch releases immediately.
+- Run the dependency audit command for every stack in CI as well. Apply security patches as soon as possible, including for the frontend framework itself: monitor its security advisories and update to patch releases immediately. Minor/major upgrades still need an explicit request ([`AGENTS.md`](../AGENTS.md) § 1).
 - Commit the lockfile. Add packages only from trusted, still-maintained sources.
 - Enable an automated dependency-update bot (e.g. Dependabot, Renovate) for automatic dependency updates (via PR, still passing CI and review).
 

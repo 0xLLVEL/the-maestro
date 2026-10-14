@@ -16,7 +16,7 @@ const LOGIN_WINDOW = 3600 * 1000;
 /** Valid user roles, weakest first. */
 export const ROLES = ['reader', 'author', 'admin'];
 
-/** Per-process HMAC secret; sessions end on restart (documented in the PRD notes). */
+/** Per-process HMAC secret; sessions end on restart by design. */
 const cookieSecret = randomBytes(32);
 
 /** In-memory login attempt counters per IP. */

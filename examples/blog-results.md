@@ -13,7 +13,7 @@ are measured, not projected.
 | Tests | 0 (one-off smoke script, uncommitted) | 14 (`node --test`), 9/9 ACs + 2/2 T scenarios connected in the index |
 | Commits | 1 | 8 (planning, approval, auth, posts, style, PRD fix, index, comment fix) |
 | Verification | smoke: register, create, list, homepage | `check_prd` clean, `verify` 33 OK / 13 explained MISS, tests 14/14 |
-| Wall time | ~30 minutes, 0 user roundtrips | ~2.5 hours, 4 user roundtrips (questions, PRD approval, two gos) |
+| Wall time | ~0.5 h rough estimate: single run incl. smoke-harness debugging, 0 user roundtrips | ~2.5 h rough estimate: single run incl. 4 user roundtrips and planning docs |
 
 ## Code comparison
 
@@ -118,11 +118,13 @@ make the checker green.
 
 ## Verdict
 
-- Cost ratio for this scope: ~5x time, 4 roundtrips, ~10x lines (mostly docs and tests).
+- Cost ratio for this scope: several-fold time on this single run (rough estimate, not
+  stopwatch-measured), 4 roundtrips, ~10x lines (mostly docs and tests).
 - What the cost bought, measured: 14 passing tests, 9/9 ACs connected, 0 known
   vulnerabilities vs 2 (XSS, session forgery) plus 4 hardening gaps on the freestyle side.
 - Break-even logic: the freestyle blog needs one stored-XSS incident or one support
   session answering "why does this code exist" to cost more than the kit's upfront hours.
 - Limits: n = 1 task, one operator, no replication; operator knew both sides (bias toward
-  the kit); only zero-dependency Node was tested; six-month maintenance behavior is still
-  projected (see `blog-comparison.md`).
+  the kit); time figures are rough retrospective estimates, not stopwatch measurements
+  (countable proxies: 8 vs 1 commits, 4 vs 0 roundtrips); only zero-dependency Node was
+  tested; six-month maintenance behavior is still projected (see `blog-comparison.md`).

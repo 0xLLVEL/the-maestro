@@ -14,7 +14,7 @@ logic plus tests, skeleton UI, styling on request, PRD-code index).
 | Planning/traceability docs | 0 | PRD, screen file, progress file, PRD-code index |
 | Commits | 1 | 7 (planning, logic, skeleton, styling, index, release of docs) |
 | Automated tests | 0 (syntax checked only) | 9 (`node --test`, every AC connected) |
-| Time, wall clock | ~10 minutes | ~1 hour |
+| Time, wall clock | ~10 min, rough retrospective estimate | ~1 hour, rough retrospective estimate (includes Q&A roundtrips) |
 | Styling | immediate, inline | skeleton first, styled after user request, separate commit |
 
 ## Scanner evidence (`scan.py` on both)
@@ -49,6 +49,9 @@ logic plus tests, skeleton UI, styling on request, PRD-code index).
 ## Limits of this comparison
 
 - n = 1 task, one agent (the kit's author-operator), no independent replication.
+- Time figures are rough retrospective estimates from a single run, not stopwatch measurements;
+  they include chat roundtrips and meta-work. The hard, countable proxies are commits,
+  files, and roundtrips in the table above.
 - Both demos are tiny; scaling behavior is projected, not measured.
 - The kit's own README states the scanner has not been exercised on large real-world
   repositories; neither has this comparison.

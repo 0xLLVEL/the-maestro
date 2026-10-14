@@ -1,4 +1,4 @@
-<!-- the-maestro 0.1.0 -->
+<!-- the-maestro 0.1.1 -->
 # AGENTS.md
 
 Guide for AI agents working in this repository. This document is intentionally concise: the core rules live here, **the details live in `docs/`**. Before working on an area, read the relevant document.

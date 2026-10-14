@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Calculator</title>
+<style>
+body { font-family: Arial; background: #222; color: #fff; display: flex; justify-content: center; }
+.calc { width: 300px; margin-top: 40px; }
+#display { background: #000; font-size: 32px; text-align: right; padding: 10px; margin-bottom: 10px; border-radius: 8px; min-height: 45px; }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button { font-size: 20px; padding: 15px; border-radius: 8px; border: none; background: #444; color: #fff; cursor: pointer; }
+button.op { background: orange; color: black; }
+#history { margin-top: 15px; }
+#history li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="calc">
+  <h2>Calculator</h2>
+  <div id="display">0</div>
+  <div class="keys">
+    <button onclick="clr()">C</button><button onclick="neg()">+/-</button><button onclick="pct()">%</button><button class="op" onclick="op('/')">/</button>
+    <button onclick="num('7')">7</button><button onclick="num('8')">8</button><button onclick="num('9')">9</button><button class="op" onclick="op('*')">*</button>
+    <button onclick="num('4')">4</button><button onclick="num('5')">5</button><button onclick="num('6')">6</button><button class="op" onclick="op('-')">-</button>
+    <button onclick="num('1')">1</button><button onclick="num('2')">2</button><button onclick="num('3')">3</button><button class="op" onclick="op('+')">+</button>
+    <button onclick="num('0')">0</button><button onclick="num('.')">.</button><button onclick="eq()" style="grid-column: span 2">=</button>
+  </div>
+  <h3>History</h3>
+  <ul id="history"></ul>
+  <button onclick="clearHist()">Clear history</button>
+</div>
+<script>
+let cur = '0', prev = null, oper = null, fresh = true;
+let hist = [];
+function show() { document.getElementById('display').innerText = cur; }
+function num(d) {
+  if (fresh) { cur = (d === '.') ? '0.' : d; fresh = false; }
+  else { if (d === '.' && cur.includes('.')) return; cur = (cur === '0' && d !== '.') ? d : cur + d; }
+  show();
+}
+function op(o) {
+  if (oper && !fresh) eq();
+  prev = cur; oper = o; fresh = true;
+}
+// TODO: handle repeated equals presses
+function eq() {
+  if (!oper) return;
+  let a = parseFloat(prev), b = parseFloat(cur), r;
+  if (oper === '+') r = a + b;
+  else if (oper === '-') r = a - b;
+  else if (oper === '*') r = a * b;
+  else if (oper === '/') { if (b === 0) { cur = 'Cannot divide by zero.'; oper = null; fresh = true; show(); return; } r = a / b; }
+  hist.unshift(prev + ' ' + oper + ' ' + cur + ' = ' + r);
+  cur = String(r); oper = null; fresh = true;
+  show(); renderHist();
+}
+function clr() { cur = '0'; oper = null; fresh = true; show(); }
+function neg() { cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur; show(); }
+function pct() { cur = String(parseFloat(cur) / 100); show(); }
+function renderHist() {
+  let ul = document.getElementById('history');
+  ul.innerHTML = '';
+  hist.forEach((h, i) => {
+    let li = document.createElement('li');
+    li.innerHTML = h + ' <button onclick="delHist(' + i + ')">x</button>';
+    ul.appendChild(li);
+  });
+}
+function delHist(i) { hist.splice(i, 1); renderHist(); }
+function clearHist() { hist = []; renderHist(); }
+document.addEventListener('keydown', e => {
+  if (/[0-9.]/.test(e.key)) num(e.key);
+  else if (['+', '-', '*', '/'].includes(e.key)) op(e.key);
+  else if (e.key === 'Enter') eq();
+  else if (e.key === 'Escape') clr();
+});
+show();
+</script>
+</body>
+</html>

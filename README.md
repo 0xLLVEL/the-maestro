@@ -53,6 +53,27 @@ Honest limits: one task each, one operator, no independent replication. The kit 
 shows its warts (a 169-line function the scanner caught, a HIGH finding that turned out to
 be a false positive). Read the limits sections before quoting any number.
 
+## When to use (and when not to)
+
+**Use the full workflow** (PRD → build → audit → refactor → release) when the code must
+outlive the session: maintained products, security-sensitive areas (auth, payments, PII),
+multi-agent or multi-human work, or anything you will need to explain in six months.
+
+**Use only the Small flow** (`AGENTS.md` §3: read, change, test, commit) for trivial changes
+in a codebase you already own. Do not write a PRD for a three-line fix.
+
+**Skip the kit** for throwaway scripts, one-off experiments, and learning spikes. If the
+spike survives, rebuild it through the workflow instead of growing it.
+
+**Recommended way to adopt it:**
+
+1. Copy the guide and install the skills (Quick start above).
+2. On an existing project, run `project-audit` first for a baseline; fix through
+   `project-refactor` before adding features.
+3. Write tests alongside code, keep UI skeleton-first, commit small with Conventional Commits.
+4. Maintain the PRD index and progress files on rename — stale traceability misleads more
+   than none. Run the scanner before and after (`compare_scans.py`) to prove progress.
+
 ## The audit scanner
 
 `skills/project-audit/scripts/scan.py` is a read-only, standard-library-only scanner. It reports **heuristics**, not verdicts:

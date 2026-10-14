@@ -93,15 +93,91 @@ Make simple blog website using Nodejs and sqlite for the database.
 
 Time figures are rough retrospective estimates from a single run, not stopwatch measurements; they include chat roundtrips.
 
+### Concrete examples
+
+Taken from the two blog builds and the calculator (same scope, same stack). Left: freestyle. Right: kit.
+
+**Code**: mixed concerns vs one layer per file
+
 ```js
-// without: SQL and HTML in one handler, unescaped (stored XSS)
-h += `<article><h2>${p.title}</h2>...`;
+// without: routing + SQL + HTML in one handler
+const user = me(req);                                   // who is me?
+const rows = db.prepare(`SELECT ... WHERE status='published' ...`).all(...);
+h += `<article><h2>${p.title}</h2>...`;                 // unescaped: stored XSS
 ```
 
 ```js
 // with: thin route calls a service, view escapes
+const user = sessionUser(db, parseCookies(req.headers.cookie).sid);
 sendJson(res, 200, { data: listPosts(db, user, page, perPage) });
 // views.js: ${escapeHtml(p.title)}
+```
+
+**Comment**: none vs contract plus header
+
+```js
+// without: no header, one TODO left behind
+// TODO: verify cookie signature
+```
+
+```js
+// with: every created file carries this, every public unit a one-liner
+/**
+ * Resolves a signed cookie value to the public user row, or null.
+ *
+ * @author  0xLLVEL
+ * @ai      Muse Spark 1.3 (OpenCode)
+ */
+```
+
+**Commit**: one dump vs one logical change each
+
+```text
+// without (1 commit total)
+docs(examples): add no-kit blog contrast demo
+```
+
+```text
+// with (8 commits, e.g.)
+feat(examples): add blog auth with roles and tests
+feat(examples): add blog posts, routes, and HTTP tests
+style(examples): design light theme for blog
+```
+
+**API**: ad hoc strings vs uniform shape
+
+```jsonc
+// without
+{ "error": "forbidden" }
+```
+
+```jsonc
+// with
+{ "error": { "code": "FORBIDDEN", "message": "Forbidden." } }
+```
+
+**Design**: styled immediately vs skeleton first
+
+```html
+<!-- without: inline style in the first commit -->
+<style>body{font-family:Arial;background:#f5f5f5...}</style>
+<button onclick="eq()" style="grid-column: span 2">=</button>
+```
+
+```html
+<!-- with: skeleton (no class/style/CSS), styling in a later commit -->
+<main>
+  <h1 data-i18n="calculator.title"></h1>
+  <div id="display" role="status"></div>
+</main>
+```
+
+**Tests**: none vs every requirement connected
+
+```text
+// without: opened once in a browser, manually
+// with: 14/14 node --test; docs/prd-reference maps AC-F001-1..AC-F003-2
+//       and T-001/T-002 to test names and code symbols
 ```
 
 Without the kit you get working code fast, and unverified. With it you pay more time upfront and get verifiable code: every

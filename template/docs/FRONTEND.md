@@ -92,7 +92,7 @@ This section applies where the framework renders on the server (SSR, server comp
 ## UI and accessibility
 
 - Reuse existing components before creating new ones; a component used in more than one place is made reusable. Do not create two components for the same need.
-- **Skeleton first.** Every new screen or component starts as a skeleton: semantic HTML tags and content only, with **no styling at all** (no `class`, no `style`, no CSS file). Reused existing components keep their styles; the rule covers new structure and new code. Visual design (colors, spacing, typography) is a separate later step and happens only when the user asks for it. Never deliver styled UI unprompted, and never present two visual alternatives unless asked.
+- **Skeleton first.** Every new screen or component starts as a skeleton: semantic tags in the stack's own syntax (HTML, JSX/TSX, Vue/Svelte templates) and content only, with **no styling at all** (no `class`/`className`, no `style`, no CSS file). Reused existing components keep their styles; the rule covers new structure and new code. Visual design (colors, spacing, typography) is a separate later step and happens only when the user asks for it. Never deliver styled UI unprompted, and never present two visual alternatives unless asked.
 - Implement every state (loading, empty, error) and the accessible behavior required by the screen file (when the PRD defines screens, at `docs/design/screens/<slug>.md`, written by the `project-prd` skill).
 - Accessibility: AA contrast, visible focus, and `prefers-reduced-motion` respected (see [docs/CODE-STANDARDS.md](CODE-STANDARDS.md)).
 - Display text goes through translation files, never hardcoded (see [docs/CODE-STANDARDS.md](CODE-STANDARDS.md)).

@@ -25,7 +25,7 @@ This skill is the executor of `project-audit`. The standards still belong to the
 1. Read `AGENTS.md`, `docs/`, and the latest audit report. Check whether the report is still relevant: compare the audited commit against `HEAD` (`git diff --stat <commit-audit>..HEAD`). If much has changed, rescan with `project-audit` before continuing.
 2. Make sure the working tree is clean (`git status`). If it is dirty, ask the user to commit or stash first. Do not overwrite unsaved work.
 3. **Baseline:** run the quality commands from `AGENTS.md` (format, static analysis, test, lint, typecheck, build) and note their results. This shows what was already red before you start, so old failures are not blamed on the refactor. Commands that cannot run are noted as "cannot be run: <reason>".
-4. Save the initial scan if it does not exist yet: `python <folder-project-audit>/scripts/scan.py <root> --json /tmp/scan-before.json`.
+4. Save the initial scan if it does not exist yet: `python <folder-project-audit>/scripts/scan.py <root> --json <temp>/scan-before.json` (a temp file outside the project: `/tmp/` on Linux/macOS, `%TEMP%\` on Windows).
 5. Create a branch from the latest `main`: `refactor/<area>` or `chore/<topic>` (English, kebab-case). Do not work on `main`.
 
 ### Step 1: Pick and approve items
@@ -63,9 +63,10 @@ Repeat for each item:
 ### Step 4: Phase close
 1. Rescan and compare:
    ```bash
-   python <folder-project-audit>/scripts/scan.py <root> --json /tmp/scan-after.json
-   python scripts/compare_scans.py /tmp/scan-before.json /tmp/scan-after.json
+   python <folder-project-audit>/scripts/scan.py <root> --json <temp>/scan-after.json
+   python scripts/compare_scans.py <temp>/scan-before.json <temp>/scan-after.json
    ```
+   (Same temp dir as Step 1: `/tmp/` on Linux/macOS, `%TEMP%\` on Windows.)
    A drop in the number of findings is an indicator of progress, not proof of correctness. Check the **"Regressions" (findings increased)** section printed by `scripts/compare_scans.py`: rules whose count rose must be explained or fixed.
 2. Re-run all quality commands and compare them with the baseline.
 3. Update the "Adjustment results" section (section 9) in the audit report, or write `docs/audit/refactor-YYYY-MM-DD.md`, with a before/after table and the remaining findings.

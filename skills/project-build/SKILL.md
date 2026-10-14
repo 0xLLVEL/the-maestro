@@ -47,9 +47,10 @@ After that, show the **plan summary** (tasks, order, risks). If the user has alr
 1. Working tree clean (if it is dirty, ask for a commit or a stash). Create a branch from the latest `main` according to Section 8 of the PRD (`feature/<slug>`). Never work on `main`.
 2. Lightweight baseline, in the background, only the stack touched by the phase:
    ```bash
-   (<formatter check> && <static analysis>) > /tmp/base-backend.log 2>&1 &
-   (<lint> && <typecheck>) > /tmp/base-frontend.log 2>&1 &
+   (<formatter check> && <static analysis>) > <temp>/base-backend.log 2>&1 &
+   (<lint> && <typecheck>) > <temp>/base-frontend.log 2>&1 &
    ```
+   (Use a temp dir outside the project: `/tmp/` on Linux/macOS, `%TEMP%\` on Windows.)
    (adjust to the commands in `AGENTS.md`). Continue to Step 2 without waiting; read the log only if there is a failure. A command that cannot run: write "cannot be run: <reason>".
 3. Conventions of the touched area: healthy, follow its pattern; messy, report and ask (`docs/REBUILD.md`); never restructure outside the PRD.
 
@@ -66,7 +67,7 @@ Details per layer are in `references/build-playbook.md`; read only the relevant 
 **Two failures on the same step, or unexpectedly changed behavior:** stop, report the cause, ask for direction. Never fiddle with it, skip it, or delete tests to make it green.
 
 ### Step 4: Phase close (once, in this order)
-1. **Full verification, one call, parallel and conditional.** Determine what changed: `git diff --name-only <base>...HEAD`. Run the full suite + lint + static analysis for the stack that changed (backend and frontend at the same time); `build` only if the frontend changed; the dependency audit only if the lockfile changed. A failure in a test that does not touch the changed files: run that test alone on the original commit (`git worktree add /tmp/base <sha>`, link the dependency folders) to confirm it is an old failure; report it, never fix it. New failures are fixed before continuing.
+1. **Full verification, one call, parallel and conditional.** Determine what changed: `git diff --name-only <base>...HEAD`. Run the full suite + lint + static analysis for the stack that changed (backend and frontend at the same time); `build` only if the frontend changed; the dependency audit only if the lockfile changed. A failure in a test that does not touch the changed files: run that test alone on the original commit (`git worktree add <temp>/base <sha>`, link the dependency folders) to confirm it is an old failure; report it, never fix it. New failures are fixed before continuing.
 2. **PRD index to code.** Create the skeleton with `python scripts/prd_tasks.py scaffold docs/prd/<slug>.md --root . --phase <N>` (only if `docs/prd-reference/<slug>.md` does not exist yet), fill in the Test file / Test name / Code columns for the entire phase at once (`references/prd-reference-template.md`), then:
    ```bash
    python scripts/prd_tasks.py verify docs/prd/<slug>.md --root . --phase <N> --ac-table

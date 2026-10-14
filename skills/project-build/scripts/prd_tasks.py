@@ -688,7 +688,7 @@ MANIFEST_NAMES = ("composer.json", "package.json", "pyproject.toml", "requiremen
 def detect_manifests(root):
     found = {}
     for n in MANIFEST_NAMES:
-        for p in [root / n, *root.glob(f"*/{n}")]:
+        for p in [root / n, *root.glob(f"*/{n}"), *root.glob(f"*/*/{n}"), *root.glob(f"*/*/*/{n}")]:
             if p.is_file():
                 found.setdefault(n, []).append(p)
     return found

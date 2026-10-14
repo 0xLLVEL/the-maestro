@@ -362,7 +362,19 @@ def _is_route_file(root, f):
     return f.parent == root and f.stem.lower() in ROOT_ENTRY_NAMES and f.suffix in TEXT_EXTS
 
 
+_API_PREFIX_RE = re.compile(r"^/api(/v\d+)?", re.I)
+_API_VERSION_RE = re.compile(r"^/api/(v\d+)", re.I)
 DYNAMIC_PATH_RE = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def _strip_api_prefix(p):
+    q = _API_PREFIX_RE.sub("", p)
+    return q if q.startswith("/") else "/" + q
+
+
+def _api_version(p):
+    m = _API_VERSION_RE.match(p)
+    return m.group(1).lower() if m else None
 
 
 def norm_dynamic(path):
@@ -496,7 +508,7 @@ def broken_code_refs(root, cell):
         fp = root / path
         if not fp.is_file():
             problems.append(f"{path} does not exist")
-        elif symbol and symbol not in read(fp):
+        elif symbol and not re.search(r"(?<![A-Za-z0-9_])" + re.escape(symbol) + r"(?![A-Za-z0-9_])", read(fp)):
             problems.append(f"symbol {symbol} does not exist in {path}")
     return problems
 
@@ -537,13 +549,23 @@ def cmd_verify(a):
         if not m:
             add("?", aid, "endpoint format is not readable")
             continue
-        method, path = m.group(1), norm_path(re.sub(r"^/?api(/v\d+)?", "", m.group(2).strip("`")))
-        hit = next((f for mt, p, f in routes if mt == method and (path == p or path.endswith(p) and p != "/")), None)
+        method, path = m.group(1), norm_path(norm_dynamic(m.group(2).strip("`")))
+        short = _strip_api_prefix(path) or "/"
+        hit = None
+        for mt, p, f in routes:
+            if mt != method:
+                continue
+            pv, qv = _api_version(p), _api_version(path)
+            if pv and qv and pv != qv:
+                continue
+            if path == p or short == (_strip_api_prefix(p) or "/"):
+                hit = f
+                break
         label = f"{method} {m.group(2).strip('`')}"
         if hit:
             add("OK", aid, f"{label} -> {hit}")
             continue
-        seg = path.strip("/").split("/")[0]
+        seg = short.strip("/").split("/")[0]
         res = next((f for name, f in resources if seg == name.strip("/").split("/")[-1]), None)
         if res:
             add("?", aid, f"{label}: probably registered as a resource in {res}; check the framework's route list")

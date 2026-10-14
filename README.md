@@ -182,6 +182,21 @@ products, security-sensitive areas, work shared across sessions. The kit does no
 write better code by itself; it makes bad code harder to hide. Full numbers, limits,
 and the honest caveats: [blog comparison](examples/blog-comparison.md).
 
+### Why you should use it
+
+1. **Every claim is verified.** Tests are written with the code, not after it; acceptance
+   criteria map to test names, so a failure points at the broken requirement.
+2. **Every line is traceable.** The PRD-code index answers "why does this exist" months
+   later, for you or the next agent — no archaeology.
+3. **Security baseline, not luck.** Hashing, signed sessions, rate limits, validation,
+   and escaping are checklist items, not things you hope the agent remembers.
+4. **Sessions resume.** Progress files plus small commits mean session #50 continues
+   where session #3 stopped, instead of re-asking you everything.
+5. **Reviews stay cheap.** Small Conventional Commits, uniform error shapes, and one
+   English standard keep diffs readable as the project grows.
+
+If that list sounds like your project, start with the Quick start above.
+
 ## The audit scanner
 
 `skills/project-audit/scripts/scan.py` is a read-only, standard-library-only scanner. It reports **heuristics**, not verdicts:

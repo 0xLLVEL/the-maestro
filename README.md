@@ -35,6 +35,24 @@ The standards belong to **your project**, not to the skills: every skill reads `
 
 Typical flow: *"write a PRD for ..."* then *"build it"* then *"audit the project"* then *"apply the audit plan"* then *"prepare a release"*.
 
+## Evidence: with kit vs without kit
+
+The same apps built twice by the same agent, once freestyle and once through the full workflow:
+
+| App | Without kit | With kit |
+|---|---|---|
+| Calculator (HTML+JS) | 1 file, 0 tests, inline style | PRD + 9/9 tests + skeleton-first UI, styled after approval |
+| Blog Phase 1 (Node+SQLite: auth, posts, pagination) | 1 file; stored XSS and unverified sessions on read | 14/14 tests, 9/9 ACs connected, 0 known vulnerabilities, full traceability |
+
+Details with measured numbers: [calculator comparison](examples/comparison.md),
+[blog results](examples/blog-results.md) (includes code-level comparison),
+[large-scale blog projection](examples/blog-comparison.md),
+[read-only audit of both blog builds](docs/audit/audit-2026-10-14.md).
+
+Honest limits: one task each, one operator, no independent replication. The kit side also
+shows its warts (a 169-line function the scanner caught, a HIGH finding that turned out to
+be a false positive). Read the limits sections before quoting any number.
+
 ## The audit scanner
 
 `skills/project-audit/scripts/scan.py` is a read-only, standard-library-only scanner. It reports **heuristics**, not verdicts:

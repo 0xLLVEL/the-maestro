@@ -15,6 +15,70 @@ are measured, not projected.
 | Verification | smoke: register, create, list, homepage | `check_prd` clean, `verify` 33 OK / 13 explained MISS, tests 14/14 |
 | Wall time | ~30 minutes, 0 user roundtrips | ~2.5 hours, 4 user roundtrips (questions, PRD approval, two gos) |
 
+## Code comparison
+
+### File structure
+
+Without kit — one file does everything:
+
+```text
+examples/blog-nokit/
+  blog.js   # routing + SQL + HTML + CSS + auth + posts (104 lines)
+```
+
+With kit — one layer per file, dependencies point inward:
+
+```text
+examples/blog-kit/
+  server.js   # thin routes: parses, calls services, responds
+  auth.js     # hashing, users, sessions, rate limit
+  posts.js    # posts rules, visibility, pagination
+  views.js    # HTML templates + escaping (no logic)
+  db.js       # schema only
+  styles.css  # styling only (separate commit)
+  lang/en.json
+  tests/      # auth.test.js, http.test.js
+  scripts/seed.js
+```
+
+### Backend
+
+| Practice | Without kit (`blog.js`) | With kit |
+|---|---|---|
+| Layering | SQL, HTML, and auth checks inline in route handlers | handlers call `auth.js`/`posts.js`; no SQL outside services; `views.js` holds no logic |
+| Error shape | ad hoc strings (`{error: 'forbidden'}`) mixed with pages | uniform `{error: {code, message}}` with `UNAUTHORIZED/FORBIDDEN/NOT_FOUND/VALIDATION/CONFLICT` |
+| Validation | none: empty titles accepted, fixed page size, uncaught bad JSON in places | username/password/title/body/status/page validated at the service boundary, 422 shapes |
+| SQL | parameterized, but one interpolated fragment would go unnoticed | parameterized; the single interpolated fixed `WHERE` fragment was flagged by the scanner and verified safe |
+| AuthZ | owner check inline; no role management; signature TODO | owner-or-admin in services, admin role endpoint, deny-by-default, all tested |
+
+### Frontend
+
+| Practice | Without kit | With kit |
+|---|---|---|
+| Styling | inline `<style>` + `style=` attributes from the first commit | unstyled skeleton first (`index.html` equivalent: `views.js` with zero `class`/`style`), `styles.css` later in its own commit |
+| Output encoding | none: `${p.title}` raw (stored XSS, AF-001) | `escapeHtml` on every interpolation |
+| Display text | hardcoded (`<h1>My Blog</h1>`, `Cannot divide…` absent) | `lang/en.json` keys; a test fails if a key is missing |
+| States | empty list handled; 404 ad hoc (`'nope'` on editor path) | loading/empty/error per screen file; uniform 404/403/422 pages |
+
+### Writing style and best practice
+
+| Practice | Without kit | With kit |
+|---|---|---|
+| Naming | `me`, `J`, `H`, `clr`, `neg`, `pct`, single letters (`u`, `r`, `p`) | `sessionUser`, `sendJson`, `parsePaging`, `atLeast`; no cryptic abbreviations |
+| Magic numbers | `7 * 864e5`, `LIMIT 10`, `32` scattered inline | `SESSION_TTL`, `LOGIN_LIMIT`, `MAX_PER_PAGE`, `MAX_BODY` constants |
+| Function size | whole app is one 104-line file with a ~90-line request callback | all units small except `createApp` (169 lines, AF-006 — caught, not prevented) |
+| Comments/docs | one `TODO`, no headers | one-sentence doc comments on every public unit, `@author`/`@ai` headers, doc comments 100% |
+| Language | English code, but display text hardcoded | English code plus English keys; user text in translation files |
+| Git | 1 commit, informative message | 8 Conventional Commits, one logical change each, verified with `diff --staged` |
+
+### Tests
+
+Without kit: no test files; behavior checked once with a throwaway smoke script (register,
+create, list, homepage) that was never committed — the next change re-verifies nothing.
+With kit: 14 tests, 6 service-level (hashing, sessions, forgery, roles) and 8 end-to-end
+over HTTP, each named after the behavior it proves and mapped to AC/T IDs in the index,
+so a future failure points at the broken requirement, not just a broken line.
+
 ## Security posture (verified by reading the code)
 
 | Property | Without kit | With kit |

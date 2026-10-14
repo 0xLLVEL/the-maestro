@@ -83,14 +83,12 @@ in bootstrap (config layer; accepted), one HIGH `sql.string-built` on a template
 that interpolates only a fixed `WHERE` fragment with fully parameterized values (verified
 safe — true-positive shape, false-positive risk), and the long-function breach above.
 
-## Prompts used (verbatim, Indonesian)
+## Prompts used
 
-Both versions — user: *"sekarang coba buat aplikasi blog online menggunakan nodejs dan
-sqlite. buat 2 versi, dengan kit dan tidak dengan kit"*. Kit side: `project-prd` (one
-batched question round) then `project-build` with approvals (*"gas"* twice — PRD
-approval and build go-ahead; styling direction "dengan arahan gaya" without specifics,
-recorded as assumption A-002: light readable style). No-kit side: freestyle, same scope,
-no guide or skill files consulted.
+Same job, same stack — the only deliberate difference is whether the agent follows
+the kit (full prompt texts live in the README with-vs-without section). Kit side ran
+`project-prd` (one batched question round) then `project-build` with approvals;
+no-kit side worked freestyle at the same scope with no guide or skill files consulted.
 
 Operator bias, stated plainly: the same agent built both sides and could not un-know
 the kit standards — the freestyle blog still uses parameterized SQL and owner checks,

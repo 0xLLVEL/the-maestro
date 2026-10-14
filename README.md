@@ -77,6 +77,21 @@ spike survives, rebuild it through the workflow instead of growing it.
 
 Taken from the two blog builds above (same scope, same stack). Left: freestyle. Right: kit.
 
+### The prompts
+
+Same job, same stack — the only deliberate difference is whether the agent follows the kit:
+
+```text
+Calculator, with kit:    "Test directly in a real-world case using your agents.
+                          Just build a calculator app from HTML and JavaScript."
+Calculator, without kit: "Now build the calculator again without using skills
+                          or AGENTS.md."
+Blog, both versions:     "Now try building an online blog app using Node.js and
+                          SQLite. Make 2 versions, with kit and without kit."
+```
+
+Everything below is what each prompt produced.
+
 **Code** — mixed concerns vs one layer per file:
 
 ```js

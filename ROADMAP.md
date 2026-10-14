@@ -4,16 +4,17 @@ Every item below traces to a measured finding: the defect audit, the calculator/
 experiments, or the read-only audit of both blog builds. Items without such a root are
 not listed. Versioning follows [Semantic Versioning](https://semver.org).
 
-## 0.1.2 — small fixes with proof (next)
+## 0.1.2 — small fixes with proof
 
 - [ ] Split `examples/blog-kit/server.js:createApp` (169 lines, AF-006) into route tables
-  per area; scanner must report no `generic.long-function` on the examples.
+  per area; scanner must report no `generic.long-function` on the examples. (Open.)
 - [ ] Teach `collect_pages` the root `index.html` case (static sites report
-  `SCR-*.page` MISS today; explained, not fixed).
-- [ ] Add `notes` to the `sql.string-built` finding pointing at the confirm-by-reading
-  contract (AF-010 showed the HIGH hit on safe parameterized code surprises users).
-- [ ] Merge the pending example/audit PRs listed in `examples/blog-results.md` if not
-  done yet, then cut the release with `project-release`.
+  `SCR-*.page` MISS today; explained, not fixed). (Open.)
+- [x] Ghost-audit scanner self-fixes (F-1–F-4, done 2026-10-14): `.env.example` excluded
+  from `git.env-committed`; trailing word boundary on the `KEY` alternative;
+  shallow-clone warning plus test/product file split in metrics; `N/A (culture
+  mismatch)` status in the report template.
+- [x] Merge the pending example/audit PRs (done: #8–#18).
 
 ## 0.2.0 — enforcement before scale claims
 

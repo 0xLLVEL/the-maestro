@@ -135,7 +135,7 @@ class Scan:
         self.id_words = id_words
         self.findings = defaultdict(list)
         self.counts = Counter()
-        self.metrics = {"files": Counter(), "loc": 0}
+        self.metrics = {"files": Counter(), "loc": 0, "test_files": 0}
         self.biggest_files = []
         self.longest_functions = []
         self.docblock = {"total": 0, "missing": 0}
@@ -169,6 +169,8 @@ def scan_file(sc, path):
     is_test = bool(re.search(
         r"(^|/)(?:tests?|spec|__tests__)/|\.(?:test|spec)\.[cm]?[jt]sx?$|(^|/)test_|_test\.(?:py|go|rb)$|_spec\.rb$"
         r"|(?:Tests?|Spec)\.(?:java|kt|cs|php)$|(^|/)src/test/", rel))
+    if is_test:
+        sc.metrics["test_files"] += 1
 
     # --- file size is a metric, not a detector
     if is_code and len(lines) > sc.max_file_lines and not re.search(r"(^|/)(?:db/)?migrat(?:ions?|e)/|alembic/versions/", rel):
@@ -212,20 +214,24 @@ def git_info(root):
 
     info["available"] = True
     info["branch"] = run("rev-parse", "--abbrev-ref", "HEAD")[1]
+    info["shallow"] = run("rev-parse", "--is-shallow-repository")[1] == "true"
     info["uncommitted_files"] = len([l for l in run("status", "--porcelain")[1].splitlines() if l])
     tags = [t for t in run("tag", "--list")[1].splitlines() if t]
     info["tags"] = len(tags)
     info["semver_tags"] = len([t for t in tags if SEMVER_TAG.match(t)])
     subjects = [s for s in run("log", "-50", "--pretty=%s")[1].splitlines() if s]
     info["commits_checked"] = len(subjects)
-    ok = len([s for s in subjects if CONVENTIONAL.match(s)])
-    info["conventional_commits_ratio"] = round(ok / len(subjects), 2) if subjects else None
+    if info["shallow"]:
+        info["conventional_commits_ratio"] = None
+    else:
+        ok = len([s for s in subjects if CONVENTIONAL.match(s)])
+        info["conventional_commits_ratio"] = round(ok / len(subjects), 2) if subjects else None
     findings = []
     _, tracked = run("ls-files")
     for line in tracked.splitlines():
         p = line.strip().strip('"')
         base = p.rsplit("/", 1)[-1] if "/" in p else p
-        if base == ".env" or base.startswith(".env."):
+        if (base == ".env" or base.startswith(".env.")) and not base.endswith(".example"):
             findings.append({"file": p, "line": 0, "note": "tracked in Git"})
     return info, findings
 
@@ -260,7 +266,7 @@ def main():
         n = p.name
         if n.startswith(".env"):
             for i, l in enumerate(read(p).splitlines(), start=1):
-                if re.match(r"\s*(export\s+)?(NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(SECRET|PASSWORD|PRIVATE|TOKEN|KEY)\w*\s*=", l):
+                if re.match(r"\s*(export\s+)?(NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(SECRET|PASSWORD|PRIVATE|TOKEN|KEY)\b\w*\s*=", l):
                     sc.add("frontend.public-env-secret", p.relative_to(root).as_posix(), i, "variable name")
         if (n.startswith(".env") and n != ".env.example") or (p.suffix in secret_exts and not n.endswith(".lock") and "lock" not in n):
             for i, l in enumerate(read(p).splitlines(), start=1):
@@ -283,6 +289,7 @@ def main():
         "metrics": {
             "files": dict(sc.metrics["files"]),
             "loc": sc.metrics["loc"],
+            "test_files": sc.metrics["test_files"],
             "doc_comment": {**sc.docblock, "coverage": round(1 - sc.docblock["missing"] / sc.docblock["total"], 2) if sc.docblock["total"] else None},
             "biggest_files": [{"lines": n, "file": f} for n, f in sorted(sc.biggest_files, reverse=True)[:10]],
             "longest_functions": [{"lines": n, "file": f, "line": l, "name": nm} for n, f, l, nm in sorted(sc.longest_functions, reverse=True)[:10]],
@@ -299,7 +306,7 @@ def main():
         Path(a.json).write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
 
     order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
-    print(f"Project: {root}\nCode files scanned: {sum(sc.metrics['files'].values())} ({sc.metrics['loc']} lines)")
+    print(f"Project: {root}\nCode files scanned: {sum(sc.metrics['files'].values())} ({sc.metrics['loc']} lines, {sc.metrics['test_files']} test files)")
     print("\nLanguage packs: " + (", ".join(pack_names) if pack_names else "none (language checks off)"))
     print("\nDetected facts:")
     for k, v in facts.items():
@@ -309,8 +316,12 @@ def main():
     for c in checks:
         print(f"  [{c['status'].upper():4}] {c['id']}: {c['detail']}")
     if ginfo["available"]:
-        print(f"\nGit: branch {ginfo['branch']}, {ginfo['uncommitted_files']} uncommitted files, "
-              f"{ginfo['semver_tags']} semver tags, Conventional Commits {ginfo['conventional_commits_ratio']} of the last {ginfo['commits_checked']} commits")
+        if ginfo.get("shallow"):
+            print(f"\nGit: branch {ginfo['branch']} (shallow clone: history-based ratios are omitted), "
+                  f"{ginfo['uncommitted_files']} uncommitted files, {ginfo['semver_tags']} semver tags")
+        else:
+            print(f"\nGit: branch {ginfo['branch']}, {ginfo['uncommitted_files']} uncommitted files, "
+                  f"{ginfo['semver_tags']} semver tags, Conventional Commits {ginfo['conventional_commits_ratio']} of the last {ginfo['commits_checked']} commits")
     dc = result["metrics"]["doc_comment"]
     if dc["total"]:
         print(f"Doc comments: {dc['coverage']:.0%} of {dc['total']} units")

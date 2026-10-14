@@ -243,7 +243,7 @@ _LANG_LINE = [
     ("frontend.token-in-browser-storage", JS_EXTS,
      re.compile(r"(?i)(?:localStorage|sessionStorage)\.\s*setItem\s*\([^)]*(?:token|jwt|auth|secret)"), "code", ("raw",), None),
     ("frontend.public-env-secret", JS_EXTS,
-     re.compile(r"\b(?:NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(?:SECRET|PASSWORD|PRIVATE|TOKEN|KEY)"),
+     re.compile(r"\b(?:NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(?:SECRET|PASSWORD|PRIVATE|TOKEN|KEY)\b"),
      "code", (), "variable name"),
     ("react.legacy-api", JS_EXTS,
      re.compile(r"\bforwardRef\s*\(|\.defaultProps\s*=|ReactDOM\.(?:render|hydrate)\s*\(|\.propTypes\s*="), "code", (), None),

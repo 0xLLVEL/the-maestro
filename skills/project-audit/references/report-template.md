@@ -51,6 +51,10 @@ Order from highest severity. One line per finding, details below it when needed.
 |---|---|---|---|---|---|---|---|
 | AF-001 | Critical | Confirmed | Security | `path/to/file.ext:42` | docs/SECURITY.md (section ...) | ... | S |
 
+Status values: *Confirmed*, *Needs verification*, or *N/A (culture mismatch)* — the last
+one when the target's own convention legitimately differs from the project standard
+(name the convention instead of reporting a violation).
+
 ### AF-001 <short title>
 - **Evidence:** what is visible in the code (quote just enough, without secrets).
 - **Impact:** why this matters.
@@ -77,6 +81,6 @@ Before/after comparison per scanner rule, results of quality commands, and remai
 ```
 
 Filling notes:
-- **Finding status:** *Confirmed* only if the code at that location has been read and the violation is clear. Otherwise *Needs verification*.
+- **Finding status:** *Confirmed* only if the code at that location has been read and the violation is clear. Otherwise *Needs verification*. *N/A (culture mismatch)* when the target follows its own legitimate convention (state which); never use it to hide an unread location.
 - **Effort:** S (less than half a day), M (1-3 days), L (more than 3 days).
 - One finding = one problem. The same violation in many places is made into a single finding with a list of locations.

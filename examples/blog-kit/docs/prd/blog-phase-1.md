@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Draft |
-| Version | 0.1 |
+| Version | 0.2 |
 | Date | 2026-10-14 |
 | Slug | blog-phase-1 |
 
@@ -37,6 +37,7 @@ Priority: **Essential** (without this the goal fails), **Important** (the next p
 - AC-F001-1: Given a new username and password, when registering, then the user is created and the first user has the admin role.
 - AC-F001-2: Given valid credentials, when logging in, then a signed session cookie is set and protected pages open.
 - AC-F001-3: Given a reader session, when creating a post, then the API answers 403 `FORBIDDEN`.
+- AC-F001-4: Given an admin session, when changing a user's role, then the new role applies on the next request.
 
 ### F-002 Post authoring
 - AC-F002-1: Given an author session, when creating a draft, then it is stored unpublished and invisible to the public list.
@@ -73,13 +74,14 @@ Only what **cannot** be inferred from the standards.
 | ID | Endpoint | Auth | Feature | Summary | Error |
 |---|---|---|---|---|---|
 | API-001 | `POST /api/v1/auth/register` | none | F-001 | Create user; first user becomes admin. | 422, 409 |
-| API-002 | `POST /api/v1/auth/login` | none | F-001 | Start session, set cookie. | 401 |
+| API-002 | `POST /api/v1/auth/login` | none | F-001 | Start session, set cookie. | 401, 429 |
 | API-003 | `POST /api/v1/auth/logout` | session | F-001 | Delete session, clear cookie. | 401 |
 | API-004 | `GET /api/v1/posts` | none (drafts need author session) | F-003 | Paginated published list (`page`, capped `per_page`). | 422 |
 | API-005 | `POST /api/v1/posts` | author | F-002 | Create draft or published post. | 401, 403, 422 |
 | API-006 | `GET /api/v1/posts/{id}` | none (drafts need owner or admin) | F-003 | Single post. | 404 |
 | API-007 | `PATCH /api/v1/posts/{id}` | owner or admin | F-002 | Edit title, body, status. | 401, 403, 404, 422 |
 | API-008 | `DELETE /api/v1/posts/{id}` | owner or admin | F-002 | Delete post. | 401, 403, 404, 422 |
+| API-009 | `PATCH /api/v1/users/{id}` | admin | F-001 | Change a user's role. | 401, 403, 404, 422 |
 
 **Security and performance:** scrypt with per-user salt; deny by default on every mutating endpoint; rate limit on login (50/hour per IP, in-memory); post list uses `LIMIT/OFFSET` with capped `per_page=50`.
 

@@ -1,0 +1,107 @@
+/**
+ * Blog visual design: light readable theme, system fonts, single accent.
+ *
+ * @author  0xLLVEL
+ * @ai      Muse Spark 1.3 (OpenCode)
+ */
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
+}
+
+main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 1.5rem;
+}
+
+article {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+article h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+article a {
+  color: #1d4ed8;
+}
+
+nav a,
+nav span {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  margin-right: 0.4rem;
+}
+
+nav span {
+  font-weight: bold;
+  border-bottom: 2px solid #1d4ed8;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+input,
+textarea,
+select {
+  display: block;
+  width: 100%;
+  font: inherit;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px solid #94a3b8;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #0f172a;
+}
+
+textarea {
+  min-height: 10rem;
+}
+
+button {
+  font: inherit;
+  background: #1d4ed8;
+  color: #fff;
+  border: 0;
+  border-radius: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none;
+    animation: none;
+  }
+}

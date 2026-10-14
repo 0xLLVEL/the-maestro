@@ -70,7 +70,7 @@ def clear_cache():
     _FILES_CACHE.clear()
 
 
-def locate(root, filename, depth=2):
+def locate(root, filename, depth=3):
     """Files called `filename` (a glob is allowed) in root and up to `depth` levels below it."""
     key = (str(root), filename, depth)
     if key in _LOCATE_CACHE:

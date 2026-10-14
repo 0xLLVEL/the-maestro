@@ -61,7 +61,7 @@ git push origin vX.Y.Z
 ```bash
 python scripts/release_prep.py --root . --check-tag vX.Y.Z
 ```
-It checks: being on `main` and identical to `origin/main` after fetch, HEAD being the `chore(release): vX.Y.Z` commit from the already merged PR, a clean working tree, and the tag not existing yet (locally or remotely). A `[MISS]` means the tag is **not created**; explain the cause. Green CI cannot be checked by the script, so ask the user for confirmation. If everything is satisfied, create an annotated tag and push **only that tag**. A GitHub Release and a deploy are not created unless requested.
+It checks: being on the default branch and identical to its upstream after fetch, HEAD being the `chore(release): vX.Y.Z` commit from the already merged PR, a clean working tree, and the tag not existing yet (locally or remotely). A `[MISS]` means the tag is **not created**; explain the cause. Green CI cannot be checked by the script, so ask the user for confirmation. If everything is satisfied, create an annotated tag and push **only that tag**. A GitHub Release and a deploy are not created unless requested.
 
 ### Hotfix
 Branch `hotfix/<id>-<slug>` from the release tag that carries the problem. The bug is fixed with a failing test first (the usual flow), a PR, a merge, then a PATCH release through Steps 1-4. The old tag is not touched.

@@ -236,6 +236,17 @@ def apply_changelog(root, version, section, prefix, tag_prev, today):
     return msg
 
 
+def _default_branch(root):
+    """The repository's default branch: origin/HEAD when known, else a local main/master/trunk."""
+    ref = git(root, "symbolic-ref", "refs/remotes/origin/HEAD", check=False)
+    if ref.startswith("refs/remotes/origin/"):
+        return ref.rsplit("/", 1)[-1]
+    for b in ("main", "master", "trunk"):
+        if git(root, "show-ref", "--verify", f"refs/heads/{b}", check=False):
+            return b
+    return "main"
+
+
 def check_tag(root, tag):
     """Report whether creating `tag` is safe. Returns exit code (1 when blocked)."""
     m = re.match(r"^(.*?)(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)$", tag)
@@ -247,24 +258,25 @@ def check_tag(root, tag):
     def add(status, name, detail):
         rows.append((status, name, detail))
 
+    base = _default_branch(root)
     branch = git(root, "rev-parse", "--abbrev-ref", "HEAD", check=False)
-    add("OK" if branch == "main" else "MISS", "branch", f"branch '{branch}'" + ("" if branch == "main" else ": the tag is created on main after the release PR is merged"))
+    add("OK" if branch == base else "MISS", "branch", f"branch '{branch}'" + ("" if branch == base else f": the tag is created on {base} after the release PR is merged"))
     add("OK" if not git(root, "status", "--porcelain", check=False) else "MISS", "tree", "clean working tree" if not git(root, "status", "--porcelain", check=False) else "there are uncommitted changes")
     remote = git(root, "remote", check=False).split()
     if "origin" in remote:
         fetched = subprocess.run(["git", "fetch", "-q", "origin"], cwd=root, capture_output=True, text=True, encoding="utf-8", errors="replace").returncode == 0
-        local, upstream = git(root, "rev-parse", "HEAD", check=False), git(root, "rev-parse", "origin/main", check=False)
+        local, upstream = git(root, "rev-parse", "HEAD", check=False), git(root, "rev-parse", f"origin/{base}", check=False)
         if not fetched:
             add("?", "sync", "git fetch failed: synchronization with origin cannot be verified")
         else:
-            add("OK" if local and local == upstream else "MISS", "sync", "HEAD matches origin/main" if local == upstream else "HEAD differs from origin/main: pull or push is not in sync")
+            add("OK" if local and local == upstream else "MISS", "sync", f"HEAD matches origin/{base}" if local == upstream else f"HEAD differs from origin/{base}: pull or push is not in sync")
         remote_tag = git(root, "ls-remote", "--tags", "origin", f"refs/tags/{tag}", check=False)
         add("OK" if not remote_tag else "MISS", "tag-remote", "the tag does not exist on the remote yet" if not remote_tag else "the tag ALREADY exists on the remote (immutable tag: use a new version)")
     else:
         add("?", "sync", "remote 'origin' does not exist: synchronization and the presence of the tag on the remote cannot be verified")
     add("OK" if not git(root, "tag", "-l", tag, check=False) else "MISS", "tag-local", "the tag does not exist locally yet" if not git(root, "tag", "-l", tag, check=False) else "the tag ALREADY exists locally (immutable tag)")
     subject = git(root, "log", "-1", "--format=%s", check=False)
-    expected = f"chore(release): v{version}"
+    expected = f"chore(release): {tag}"
     ok = subject.strip().lower().startswith(expected.lower().rstrip())
     add("OK" if ok else "MISS", "release-commit", f"HEAD: '{subject}'" + ("" if ok else f" (expected '{expected}' from the merged release PR)"))
     print(f"Preconditions for tag {tag}:")

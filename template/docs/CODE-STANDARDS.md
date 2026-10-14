@@ -16,7 +16,7 @@
 How to write them:
 - Use plain, clear English, with **one consistent spelling** across the whole project (e.g. American English).
 - **Do not mix languages** and do not create half-local-language names (`getDataUser`, `hapusData`, `userNama`).
-- Domain terms that have no standard English equivalent (e.g. official local document names) may be used as-is. Explain them in a doc comment and record them in the project glossary.
+- Domain terms that have no standard English equivalent (e.g. official local document names) may be used as-is. Explain them in a doc comment where they are used.
 
 **End-user display text** (UI labels, validation messages, email contents) is not covered by this rule, but it **must not be hardcoded** in logic or components. Store it in translation files (the backend's language files, JSON locale files in the frontend) with English keys. The display language follows product needs (e.g. `id`, `en`).
 

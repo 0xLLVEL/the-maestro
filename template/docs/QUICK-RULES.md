@@ -34,4 +34,4 @@
 ## Security and Git
 - Authoritative validation and authorization in the backend; the frontend is only for UX. Anything reachable from the browser (including frontend endpoints and actions) is a public endpoint. No secrets in code, logs, or commits; values with the framework's public env prefix are public. Details: `docs/SECURITY.md`.
 - Work in a working branch with Conventional Commits; check `git diff --staged` before committing. Do not push to `main`, do not force push, do not create tags or releases, do not run destructive commands without explicit approval (`AGENTS.md` § 6).
-- Behavior changed: update the relevant doc comment, OpenAPI, README/docs, and `CHANGELOG.md`.
+- Behavior changed: update the relevant doc comment, OpenAPI, and README/docs in the same PR; `CHANGELOG.md` is updated at release time through the release flow ([docs/GIT.md](GIT.md)).

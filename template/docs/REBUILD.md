@@ -37,7 +37,7 @@ Check a representative sample: folder structure, entry points/handlers, services
 4. Rebuild **module by module**, not as one giant change. One module = one small commit/PR (`refactor: ...`).
 5. Apply the new style per AGENTS.md § Core Principles, docs/BACKEND.md, and docs/FRONTEND.md. Preserve behavior and API contracts unless asked otherwise. Database schema changes must go through a new safe migration.
 6. Delete old code only after its replacement passes tests, lint, and static analysis.
-7. Record the new style in use in `docs/CONVENTIONS.md` so it stays consistent for future work.
+7. Record the new style in use in the rebuild plan / progress file so it stays consistent for future work.
 
 ## Step 4 - Report
 Once finished, report the audit results, the decisions made, the modules rebuilt, and the risks/behavior that need human review.

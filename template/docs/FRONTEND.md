@@ -86,12 +86,12 @@ This section applies where the framework renders on the server (SSR, server comp
 
 - Order of preference for where to keep state: local state -> lift to the parent -> shared context (data that rarely changes) -> an external store **only** when proven necessary (YAGNI). Data from the server stays in the server state library.
 - **Form**: pick one approach across the whole project (the framework's native form handling, for example a server action or a form action, or a single form library in a client-rendered part) and do not mix them.
-- **A server-side form endpoint is a public HTTP endpoint.** Authentication, authorization, and authoritative validation remain in the backend; the endpoint only forwards. If it does something itself, validate its input and check its authorization inside that endpoint.
+- **A server-side form endpoint is a public HTTP endpoint that only forwards to the backend.** Authentication, authorization, and authoritative validation remain in the backend. It holds no business logic and no authorization logic of its own; if forwarding is impossible, treat the need as a backend change instead.
 - Client-side validation uses a schema when the language supports it. Display 422 errors from the backend on the corresponding field, disable the submit button while pending, and prevent *double submit*.
 
 ## UI and accessibility
 
 - Reuse existing components before creating new ones; a component used in more than one place is made reusable. Do not create two components for the same need.
-- Implement every state (loading, empty, error) and the accessible behavior required by the screen file (`docs/design/screens/<slug>.md`).
+- Implement every state (loading, empty, error) and the accessible behavior required by the screen file (when the PRD defines screens, at `docs/design/screens/<slug>.md`, written by the `project-prd` skill).
 - Accessibility: AA contrast, visible focus, and `prefers-reduced-motion` respected (see [docs/CODE-STANDARDS.md](CODE-STANDARDS.md)).
 - Display text goes through translation files, never hardcoded (see [docs/CODE-STANDARDS.md](CODE-STANDARDS.md)).

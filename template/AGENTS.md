@@ -77,16 +77,16 @@ Code formatting is determined by `.editorconfig` and the formatters of each stac
 - **DRY**: the same logic appearing for the third time, extract it. Check existing helpers/services/hooks first. No premature abstraction.
 - **KISS**: the simplest solution; prefer the built-in features of the stack and framework in use before a new package or pattern; use *early return*.
 - **YAGNI**: only what is requested now; no parameters, config, columns, or dependencies "just in case".
-- **SOLID**: one unit, one reason to change; add behavior through an interface/strategy instead of `if/switch` chains; implementations must be substitutable for their abstractions; interfaces and props stay small and specific; depend on abstractions and inject dependencies (never `new` inside business logic).
+- **SOLID**: one unit, one reason to change; add behavior through an interface/strategy instead of `if/switch` chains; implementations must be substitutable for their abstractions; interfaces and props stay small and specific; depend on abstractions and inject dependencies (business collaborators are injected, never `new` inside business logic; `new` stays allowed for value objects, DTOs, exceptions, and collection literals).
 - **Best practice**: follow the official best practice of each language, library, and framework **at the installed version**, and prefer the built-in mechanism over a custom one or a new package. A deliberate deviation carries a one-line technical reason in a comment. Verify against the official documentation of that version, never from memory ([docs/CODE-STANDARDS.md](docs/CODE-STANDARDS.md)).
 - **SoC**: thin entry point -> service / use case -> data layer -> response mapping. Presentational UI is separated from reusable logic (hooks, composables, stores) and data. Business logic **must not** live in the entry point, route, UI component, or the framework's server-side rendering layer; it stays in the backend.
 - **Abstraction**: it has to simplify, not add empty layers.
 - **Readability**: names express intent; no *magic numbers/strings* (use an Enum or a constant); identifiers **in English** ([docs/CODE-STANDARDS.md](docs/CODE-STANDARDS.md)).
-- **Documentation**: doc comments are **mandatory** on public APIs, concise (one sentence for the contract, never a repeat of the name), and updated with the code. Comments hold only code explanations, the author (name from `git config`), and the AI used: no PRD, document, or issue references and no TODOs. PRD-to-code references live in `docs/prd-reference/<slug>.md` ([docs/CODE-DOCUMENTATION.md](docs/CODE-DOCUMENTATION.md)). Delete dead code; update the README and docs when behavior changes.
+- **Documentation**: doc comments are **mandatory** on public APIs, concise (one sentence for the contract, never a repeat of the name; extra lines only as allowed by [docs/CODE-DOCUMENTATION.md](docs/CODE-DOCUMENTATION.md)), and updated with the code. Comments hold only code explanations, the author (name from `git config`), and the AI used: no PRD, document, or issue references and no TODOs. PRD-to-code references live in `docs/prd-reference/<slug>.md` ([docs/CODE-DOCUMENTATION.md](docs/CODE-DOCUMENTATION.md)). Delete dead code; update the README and docs when behavior changes.
 - **Testability**: dependencies are injected; new features and bug fixes come with tests (a bug fix starts with a failing test).
 - **Version Control**: small commits with Conventional Commits on a working branch ([docs/GIT.md](docs/GIT.md)).
 
-**Anti-spaghetti** (starting points, not hard limits; adjust them here and the audit follows): aim for functions ≲ 30 lines, files ≲ 300 lines, nesting ≤ 3 levels. The audit scanner flags functions only above 50 lines (`--max-func-lines`) and files above 300 (`--max-file-lines`) to limit false positives. No "god class" or giant component, no copy-paste, no business logic in the HTTP/UI layer.
+**Anti-spaghetti** (guidelines for new code, not hard limits; adjust them here and the audit follows): write new functions ≲ 30 lines, files ≲ 300 lines, nesting ≤ 3 levels. The audit scanner flags functions above 50 lines (`--max-func-lines`) and files above 300 (`--max-file-lines`) as heuristics that must be confirmed by reading the code, not as approvals. No "god class" or giant component, no copy-paste, no business logic in the HTTP/UI layer.
 
 ## 3. Workflow and Pace
 
@@ -119,7 +119,7 @@ The mandatory skills are listed in the table at the top. If the skill you need i
 
 **Honest and accurate**
 - **Never invent** APIs, methods, packages, flags, or commands. Verify in the project code or the official documentation; if you cannot, say so clearly.
-- **Read before writing.** Trace usage across the entire repository before changing or deleting something.
+- **Read before writing.** Trace usage before changing or deleting something (within the pace rules above: search the repository with grep, read the files you touch and their neighbors; a full read of the repository is never required).
 - Do not claim "already tested/passing" without actually running it. Report failures as they are and acknowledge uncertainty.
 
 **Ask or proceed**
@@ -163,7 +163,7 @@ Work is complete once every item is met, CI is green, and the PR is approved by 
 - [ ] Tests are added or updated and passing; coverage does not drop ([docs/TESTING.md](docs/TESTING.md), [docs/CI-CD.md](docs/CI-CD.md))
 - [ ] Lint, format, static analysis, typecheck, and build are clean (the full suite and build run once per phase or before a PR)
 - [ ] Security is checked ([docs/SECURITY.md](docs/SECURITY.md)); the API contract and OpenAPI are updated ([docs/API.md](docs/API.md)); migrations are production-safe ([docs/DATABASE-PERFORMANCE.md](docs/DATABASE-PERFORMANCE.md))
-- [ ] The PRD-code index is filled for the phase (`prd_tasks.py verify` passes)
+- [ ] The PRD-code index is filled for the phase (`prd_tasks.py verify` passes; only when the work is built from a PRD — Small tasks without a PRD skip this item)
 - [ ] Documentation and `CHANGELOG.md` are updated; no `TODO`/`FIXME` or debug code is left
 - [ ] Commits and the PR follow [docs/GIT.md](docs/GIT.md)
 

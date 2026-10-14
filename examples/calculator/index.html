@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Calculator</title>
+</head>
+<body>
+  <main>
+    <h1 data-i18n="calculator.title"></h1>
+    <section>
+      <div id="display" role="status"></div>
+      <div id="keypad">
+        <button data-action="clear">C</button>
+        <button data-action="sign">+/-</button>
+        <button data-action="percent">%</button>
+        <button data-action="operator" data-value="/">/</button>
+        <button data-action="digit" data-value="7">7</button>
+        <button data-action="digit" data-value="8">8</button>
+        <button data-action="digit" data-value="9">9</button>
+        <button data-action="operator" data-value="*">*</button>
+        <button data-action="digit" data-value="4">4</button>
+        <button data-action="digit" data-value="5">5</button>
+        <button data-action="digit" data-value="6">6</button>
+        <button data-action="operator" data-value="-">-</button>
+        <button data-action="digit" data-value="1">1</button>
+        <button data-action="digit" data-value="2">2</button>
+        <button data-action="digit" data-value="3">3</button>
+        <button data-action="operator" data-value="+">+</button>
+        <button data-action="digit" data-value="0">0</button>
+        <button data-action="digit" data-value=".">.</button>
+        <button data-action="equals">=</button>
+      </div>
+    </section>
+    <section>
+      <h2 data-i18n="history.title"></h2>
+      <ul id="history"></ul>
+      <p id="history-empty" data-i18n="history.empty"></p>
+      <button id="history-clear" data-i18n="history.clear"></button>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

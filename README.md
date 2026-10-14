@@ -170,6 +170,18 @@ style(examples): design light theme for blog
 //        and T-001/T-002 to test names and code symbols
 ```
 
+### Conclusion
+
+Without the kit you get working code fast — and unverified: the demo above shipped
+stored XSS and unverified sessions in 30 minutes with zero tests to catch them.
+With the kit you pay several-fold time upfront and get verifiable code: every claim
+tested, every line traceable to a requirement, every decision recorded.
+
+So: skip the kit for throwaway code, use it for code that must live — maintained
+products, security-sensitive areas, work shared across sessions. The kit does not
+write better code by itself; it makes bad code harder to hide. Full numbers, limits,
+and the honest caveats: [blog comparison](examples/blog-comparison.md).
+
 ## The audit scanner
 
 `skills/project-audit/scripts/scan.py` is a read-only, standard-library-only scanner. It reports **heuristics**, not verdicts:

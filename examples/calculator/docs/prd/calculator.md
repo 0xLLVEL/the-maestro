@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft |
+| Status | Approved |
 | Version | 0.1 |
 | Date | 2026-10-14 |
 | Slug | calculator |

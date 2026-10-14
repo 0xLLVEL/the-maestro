@@ -1,5 +1,7 @@
 # the-maestro
 
+[![CI](https://github.com/0xLLVEL/the-maestro/actions/workflows/ci.yml/badge.svg)](https://github.com/0xLLVEL/the-maestro/actions/workflows/ci.yml)
+
 A small, opinionated kit that keeps AI coding agents disciplined: one **guide** (`AGENTS.md` plus twelve short standards
 documents) and five **skills** that turn it into a workflow: write a PRD, build from it, audit the result, refactor what the
 audit found, and prepare a release.
@@ -9,240 +11,114 @@ agent's work (and your repository) against the same rules.
 
 ## What it does
 
-AI agents write code fast and forget everything between sessions. The kit fixes the
-forgetting, not the writing:
+AI agents write code fast and forget everything between sessions. The kit fixes the forgetting, not the writing:
 
-1. **Plans before coding** — the agent writes a short PRD and waits for your approval.
-   No code before the plan is agreed.
-2. **Builds in verifiable steps** — phase by phase, tests with the code, small commits,
-   progress and PRD-code index updated at phase close.
-3. **Audits honestly** — a read-only scanner reports heuristics; every finding is
-   confirmed by reading the code before it counts.
-4. **Refactors safely** — from the approved audit plan, one module at a time, with
-   characterization tests and before/after comparison.
-5. **Releases cleanly** — version from commits, changelog from history, release PR
-   without touching tags or deploys on its own.
+1. **Plans before coding**: the agent writes a short PRD and waits for your approval.
+2. **Builds in verifiable steps**: phase by phase, tests with the code, small commits, progress and PRD-code index updated at phase close.
+3. **Audits honestly**: a read-only scanner reports heuristics; every finding is confirmed by reading the code before it counts.
+4. **Refactors safely**: from the approved audit plan, one module at a time, with characterization tests and before/after comparison.
+5. **Releases cleanly**: version from commits, changelog from history, release PR without touching tags or deploys on its own.
+
+## Quick start
+
+Requirements: Python 3.9+ (standard library only) for the scripts.
+
+1. **Copy the guide** into your project: `template/AGENTS.md` and `template/docs/` go to your repository root.
+2. **Install the skills**: copy the folders in `skills/` to your agent's skills directory (for example `.claude/skills/` in your
+   project, or `~/.claude/skills/` for Claude Code).
+3. **Start the agent.** The "Project Context" section of `AGENTS.md` is blank on purpose (`_fill_`). On the first run the agent
+   detects your stack from your manifests, fills it in, and asks you one question only if something cannot be detected.
+
+Typical flow: *"write a PRD for ..."* → *"build it"* → *"audit the project"* → *"apply the audit plan"* → *"prepare a release"*.
+
+Agent support: `AGENTS.md` is plain Markdown any agent can read, and each skill is a folder with a `SKILL.md`. The example
+projects in this repository were built with OpenCode.
+<!-- TODO: add the other agents you have actually run the skills in, and where each one loads skills from -->
 
 ## What is inside
 
 ```
 template/            copy into your project
   AGENTS.md          entry point for any agent: principles, workflow, pace rules, definition of done
-  docs/              standards: code, documentation, backend, frontend, API, database, security, testing, Git, CI/CD, rebuild
-skills/              the five skills (each is a folder with a SKILL.md)
-  project-prd/       write a short, executable PRD (no code)
-  project-build/     build from an approved PRD, phase by phase, on its own branch
-  project-audit/     read-only audit of a project against the standards, then a fix plan
-  project-refactor/  apply an approved audit plan in small, tested commits
-  project-release/   prepare version, changelog, and release PR (never tags or deploys on its own)
+  docs/              twelve standards files (listed below)
+skills/              each is a folder with a SKILL.md and verification scripts
+  project-prd/       write a short, executable PRD (no code); check_prd.py validates structure and IDs
+  project-build/     build from an approved PRD, phase by phase, on its own branch; prd_tasks.py checks readiness and traceability
+  project-audit/     read-only audit against the standards, then a fix plan; scan.py reports heuristics
+  project-refactor/  apply an approved audit plan in small, tested commits; compare_scans.py shows before/after
+  project-release/   version, changelog, release PR (never tags or deploys on its own); release_prep.py guards preconditions
+examples/            calculator and blog built with and without the kit, plus a large-codebase audit case study
 tools/check_kit.py   keeps this repository consistent (see Development)
+ROADMAP.md           what is planned, each item traced to a measured finding
 ```
 
-The standards belong to **your project**, not to the skills: every skill reads `AGENTS.md` and `docs/` first.
+**The twelve standards** in `template/docs/`: `CODE-STANDARDS`, `CODE-DOCUMENTATION`, `BACKEND`, `FRONTEND`, `API`,
+`DATABASE-PERFORMANCE`, `SECURITY`, `TESTING`, `GIT`, `CI-CD`, `REBUILD`, and the one-minute `QUICK-RULES` card.
 
-## The pieces in detail
+The standards belong to **your project**, not to the skills: every skill reads `AGENTS.md` and `docs/` first, and the agent
+opens only the files its task touches, never all twelve.
 
-**`AGENTS.md` — the entry point.** The one file every agent reads first: project context
-(stack and commands, detected from your manifests once), core principles
-(DRY, KISS, YAGNI, SOLID, SoC, readability, documentation, testability), workflow by
-task size with pace rules (read only what you need, verify per layer), behavior rules
-(never invent, ask-or-proceed, scope discipline), a definition of done, and absolute
-prohibitions (no `.env` games, no pushing to `main`, no gaming tests or CI).
+`AGENTS.md` covers project context, core principles (DRY, KISS, YAGNI, SOLID, SoC, readability, documentation, testability),
+workflow by task size with pace rules, behavior rules (never invent, ask-or-proceed, scope discipline), a definition of done,
+and absolute prohibitions (no `.env` games, no pushing to `main`, no gaming tests or CI).
 
-**Rule set (`docs/`, twelve files).** The details behind the principles, one file per
-area: code standards and documentation, backend, frontend, API, database and
-performance, security, testing, Git, CI/CD, plus rebuild procedure and a one-minute
-`QUICK-RULES.md` card. The agent opens only the files its task touches — never all twelve.
+## When to use it (and when not to)
 
-**Skills (`skills/`, five folders).** Instructions that turn the guide into a workflow,
-each with scripts that verify the work:
-- `project-prd` — asks one batched round of questions, writes an executable PRD plus
-  screen skeletons; `check_prd.py` validates structure and IDs.
-- `project-build` — builds phase by phase on a working branch; `prd_tasks.py` checks
-  readiness, prints the plan, and verifies every requirement is connected to tests and code.
-- `project-audit` — read-only scan of the whole project; `scan.py` reports heuristics
-  across stacks, the agent confirms each by reading before it counts.
-- `project-refactor` — applies the approved audit plan module by module with
-  characterization tests and a before/after comparison (`compare_scans.py`).
-- `project-release` — derives the version from commits, assembles the changelog, opens
-  the release PR; `release_prep.py` guards tags and preconditions.
+- **Full workflow** (PRD → build → audit → refactor → release): code that must outlive the session: maintained products,
+  security-sensitive areas (auth, payments, PII), multi-agent or multi-human work, anything you must explain in six months.
+- **Small flow only** (`AGENTS.md` §3: read, change, test, commit): trivial changes in a codebase you already own.
+  Do not write a PRD for a three-line fix.
+- **Skip the kit**: throwaway scripts, one-off experiments, learning spikes. If a spike survives, rebuild it through the workflow.
 
-**Consistency guard (`tools/check_kit.py`).** Keeps the kit itself honest: template stays
-stack-neutral, every cited rule id exists in the scanner, duplicated files are identical,
-and version markers agree. CI runs it on Linux, Windows, and macOS.
-
-## Quick start
-
-1. **Copy the guide into your project.** Copy `template/AGENTS.md` and `template/docs/` to the root of your repository.
-2. **Install the skills.** Copy the folders in `skills/` to your agent's skills directory (for example `.claude/skills/` in your
-   project, or `~/.claude/skills/` for Claude Code).
-3. **Start the agent.** The "Project Context" section of `AGENTS.md` is blank on purpose (`_fill_`). On the first run the agent
-   detects your stack from the manifests in your repository, fills it in, and asks you one question only if something cannot
-   be detected.
-
-Typical flow: *"write a PRD for ..."* then *"build it"* then *"audit the project"* then *"apply the audit plan"* then *"prepare a release"*.
+**Adopting it on an existing project:** run `project-audit` first for a baseline, fix through `project-refactor` before adding
+features, write tests alongside code, keep UI skeleton-first, commit small with Conventional Commits, and keep the PRD index
+and progress files current on renames. Run the scanner before and after (`compare_scans.py`) to prove progress.
 
 ## Evidence: with kit vs without kit
 
-The same apps built twice by the same agent, once freestyle and once through the full workflow:
-
-| App | Without kit | With kit |
-|---|---|---|
-| Calculator (HTML+JS) | 1 file, 0 tests, inline style | PRD + 9/9 tests + skeleton-first UI, styled after approval |
-| Blog Phase 1 (Node+SQLite: auth, posts, pagination) | 1 file; stored XSS and unverified sessions on read | 14/14 tests, 9/9 ACs connected, 0 known vulnerabilities, full traceability |
-
-Details with measured numbers: [calculator comparison](examples/calculator-comparison.md),
-[blog comparison](examples/blog-comparison.md) (raw numbers, code style, security, scanner evidence),
-[read-only audit of both blog builds](docs/audit/audit-2026-10-14.md).
-
-Honest limits: one task each, one operator, no independent replication. The kit side also
-shows its warts (a 169-line function the scanner caught, a HIGH finding that turned out to
-be a false positive). Read the limits sections before quoting any number.
-
-## When to use (and when not to)
-
-**Use the full workflow** (PRD → build → audit → refactor → release) when the code must
-outlive the session: maintained products, security-sensitive areas (auth, payments, PII),
-multi-agent or multi-human work, or anything you will need to explain in six months.
-
-**Use only the Small flow** (`AGENTS.md` §3: read, change, test, commit) for trivial changes
-in a codebase you already own. Do not write a PRD for a three-line fix.
-
-**Skip the kit** for throwaway scripts, one-off experiments, and learning spikes. If the
-spike survives, rebuild it through the workflow instead of growing it.
-
-**Recommended way to adopt it:**
-
-1. Copy the guide and install the skills (Quick start above).
-2. On an existing project, run `project-audit` first for a baseline; fix through
-   `project-refactor` before adding features.
-3. Write tests alongside code, keep UI skeleton-first, commit small with Conventional Commits.
-4. Maintain the PRD index and progress files on rename — stale traceability misleads more
-   than none. Run the scanner before and after (`compare_scans.py`) to prove progress.
-
-## With vs without: concrete examples
-
-Taken from the two blog builds above (same scope, same stack). Left: freestyle. Right: kit.
-
-### The prompt
-
-One prompt, same stack — the only deliberate difference is whether the agent follows the kit:
+The same apps built twice by the same agent, once freestyle and once through the full workflow. The blog used one prompt on both sides:
 
 ```text
 Make simple blog website using Nodejs and sqlite for the database.
 ```
 
-Everything below is what each side produced from it.
+| | Without kit | With kit |
+|---|---|---|
+| **Calculator** (HTML+JS) | 1 file, 0 tests, inline style | PRD + 9/9 tests + skeleton-first UI, styled after approval |
+| Calculator commits / time | 1 commit, ~10 min | 6 commits, ~1 h (3 roundtrips) |
+| **Blog Phase 1** (Node+SQLite: auth, posts, pagination) | 1 file; stored XSS and unverified session signatures | 14/14 tests, 9/9 ACs connected, 0 known vulnerabilities, full traceability |
+| Blog commits / time | 1 commit, ~0.5 h | 8 commits, ~2.5 h (4 roundtrips), about 5x |
+| API errors | `{ "error": "forbidden" }` | `{ "error": { "code": "FORBIDDEN", "message": "Forbidden." } }` |
+| Code structure | routing + SQL + HTML in one handler, unescaped output | thin route → service → escaping view |
 
-**Code** — mixed concerns vs one layer per file:
+Time figures are rough retrospective estimates from a single run, not stopwatch measurements; they include chat roundtrips.
 
 ```js
-// without: routing + SQL + HTML in one handler
-const user = me(req);                                   // who is me?
-const rows = db.prepare(`SELECT ... WHERE status='published' ...`).all(...);
-h += `<article><h2>${p.title}</h2>...`;                 // unescaped: stored XSS
+// without: SQL and HTML in one handler, unescaped (stored XSS)
+h += `<article><h2>${p.title}</h2>...`;
 ```
 
 ```js
 // with: thin route calls a service, view escapes
-const user = sessionUser(db, parseCookies(req.headers.cookie).sid);
 sendJson(res, 200, { data: listPosts(db, user, page, perPage) });
 // views.js: ${escapeHtml(p.title)}
 ```
 
-**Comment** — none vs contract plus header:
+Without the kit you get working code fast, and unverified. With it you pay more time upfront and get verifiable code: every
+claim tested, every line traceable to a requirement, every decision recorded. The kit does not write better code by itself;
+it makes bad code harder to hide.
 
-```js
-// without: no header, one TODO left behind
-// TODO: verify cookie signature
-```
+**On a real codebase:** the scanner and audit method were also run read-only against Ghost (about 7,000 code files, 1.1M lines).
+The case study reports the scanner's false positives and its own bugs next to what held up:
+[Ghost audit](examples/large-audit-ghost.md).
 
-```js
-// with: every created file carries this, every public unit a one-liner
-/**
- * Resolves a signed cookie value to the public user row, or null.
- *
- * @author  0xLLVEL
- * @ai      Muse Spark 1.3 (OpenCode)
- */
-```
+Details: [calculator comparison](examples/calculator-comparison.md), [blog comparison](examples/blog-comparison.md),
+[read-only audit of both blog builds](docs/audit/audit-2026-10-14.md).
 
-**Commit** — one dump vs one logical change each:
-
-```text
-// without (1 commit total)
-docs(examples): add no-kit blog contrast demo
-```
-
-```text
-// with (8 commits, e.g.)
-feat(examples): add blog auth with roles and tests
-feat(examples): add blog posts, routes, and HTTP tests
-style(examples): design light theme for blog
-```
-
-**API** — ad hoc strings vs uniform shape:
-
-```json
-// without
-{ "error": "forbidden" }
-```
-
-```json
-// with
-{ "error": { "code": "FORBIDDEN", "message": "Forbidden." } }
-```
-
-**Design** — styled immediately vs skeleton first:
-
-```html
-<!-- without: inline style in the first commit -->
-<style>body{font-family:Arial;background:#f5f5f5...}</style>
-<button onclick="eq()" style="grid-column: span 2">=</button>
-```
-
-```html
-<!-- with: skeleton (no class/style/CSS), styling in a later commit -->
-<main>
-  <h1 data-i18n="calculator.title"></h1>
-  <div id="display" role="status"></div>
-</main>
-```
-
-**Tests** — none vs every requirement connected:
-
-```text
-// without: opened once in a browser, manually
-// with: 14/14 node --test; docs/prd-reference maps AC-F001-1..AC-F003-2
-//        and T-001/T-002 to test names and code symbols
-```
-
-### Conclusion
-
-Without the kit you get working code fast — and unverified: the demo above shipped
-stored XSS and unverified sessions in 30 minutes with zero tests to catch them.
-With the kit you pay several-fold time upfront and get verifiable code: every claim
-tested, every line traceable to a requirement, every decision recorded.
-
-So: skip the kit for throwaway code, use it for code that must live — maintained
-products, security-sensitive areas, work shared across sessions. The kit does not
-write better code by itself; it makes bad code harder to hide. Full numbers, limits,
-and the honest caveats: [blog comparison](examples/blog-comparison.md).
-
-### Why you should use it
-
-1. **Every claim is verified.** Tests are written with the code, not after it; acceptance
-   criteria map to test names, so a failure points at the broken requirement.
-2. **Every line is traceable.** The PRD-code index answers "why does this exist" months
-   later, for you or the next agent — no archaeology.
-3. **Security baseline, not luck.** Hashing, signed sessions, rate limits, validation,
-   and escaping are checklist items, not things you hope the agent remembers.
-4. **Sessions resume.** Progress files plus small commits mean session #50 continues
-   where session #3 stopped, instead of re-asking you everything.
-5. **Reviews stay cheap.** Small Conventional Commits, uniform error shapes, and one
-   English standard keep diffs readable as the project grows.
-
-If that list sounds like your project, start with the Quick start above.
+**Honest limits:** one task each, one operator with a pro-kit bias, no independent replication, and the freestyle blog still
+used parameterized SQL because the same agent knew the kit, so the measured gap is a lower bound. The kit side also shows its
+warts (a 169-line function the scanner caught, a HIGH finding that turned out to be a false positive). The large-scale benefit
+is projected, not measured; see [ROADMAP.md](ROADMAP.md) for what must be proven first.
 
 ## The audit scanner
 
@@ -253,12 +129,24 @@ every finding must be confirmed by reading the code.
 python skills/project-audit/scripts/scan.py <project-root> --json audit-scan.json
 ```
 
+Real output on `examples/blog-kit` (trimmed):
+
+```text
+Code files scanned: 9 (944 lines, 2 test files)
+Doc comments: 100% of 33 units
+
+Heuristic findings (sorted by severity):
+  [HIGH    ] sql.string-built: 1  - SQL built with string interpolation or concatenation (injection risk)
+  [MEDIUM  ] design.hardcoded-color: 12  - Hex color hardcoded outside token files
+  [MEDIUM  ] env.read-outside-config: 3  - Environment variable read outside the configuration layer
+```
+
 | Option | Meaning |
 |---|---|
 | `--max-file-lines N`, `--max-func-lines N` | size thresholds (defaults 300 and 50) |
 | `--max-per-rule N` | how many examples to list per rule |
 | `--style-checks` | also report opinionated `design.slop-*` style heuristics (off by default) |
-| `--lang-pack id,es,...` | which non-English language(s) to flag in code and comments: `id`, `es`, `pt`, `fr`, `de`, a JSON file, or `none` (default `id`) |
+| `--lang-pack id,es,...` | non-English language(s) to flag in code and comments: `id`, `es`, `pt`, `fr`, `de`, a JSON file, or `none` (default `id`) |
 
 It recognises **PHP, Node/TypeScript** (React, Vue, Svelte, Angular, Next, Nuxt, ...), **Python, Go, Ruby, Java/Kotlin, Rust,
 and .NET**, including several in one repository. Per stack it checks the tooling that belongs there (formatter, linter, static
@@ -272,19 +160,25 @@ python tools/check_kit.py            # consistency checks
 python tools/check_kit.py --tests    # ... plus every self-test of the skills
 ```
 
-`check_kit.py` verifies, among other things, that the template contains no stack-specific API names, that every rule id cited in
-the documentation really exists in the scanner, that duplicated files are identical, and that `VERSION`, `CHANGELOG.md`, the
+`check_kit.py` verifies, among other things, that the template contains no stack-specific API names, that every rule id cited
+in the documentation exists in the scanner, that duplicated files are identical, and that `VERSION`, `CHANGELOG.md`, the
 template's version marker, and the skills' front matter agree. CI runs it on Linux, Windows, and macOS (Python 3.9 and 3.12).
-Everything uses the Python standard library only.
 
 ## Status and limitations
 
-- The scripts were developed and tested on Linux with Python 3.12; CI covers the other platforms and versions.
-- The scanner has been exercised on generated projects for each stack and on a corpus of real source files, not yet on large
-  real-world repositories, so expect false positives from the newer rules and report them.
+- Scripts were developed and tested on Linux with Python 3.12; CI covers the other platforms and versions.
+- The scanner has been exercised on generated projects for each stack, on a corpus of real source files, and on one large
+  real-world repository (Ghost). Expect false positives from the newer rules and please report them.
+- The scanner does not yet see plain `.html`/`.js` frontends, and several risky rules (missing authorization checks, missing
+  rate limits) are still text-only guidance rather than detectors. Both are on the [roadmap](ROADMAP.md).
 - The skills are instructions for an agent. Their scripts are tested; the agent's behaviour when following them is not
   covered by automated tests (the `evals/` folders describe behavioural checks that need an agent to run them).
 - The Spanish, Portuguese, French, and German language packs are starting points; add or remove words for your team.
+
+## Contributing
+
+Issues and PRs are welcome, especially scanner false positives and new language packs. Run
+`python tools/check_kit.py --tests` before opening a PR.
 
 ## Versioning
 
@@ -293,4 +187,5 @@ kit version, so a project can tell which version of the guide it copied.
 
 ## License
 
+<!-- TODO: choose a license (e.g. MIT or Apache-2.0), add a LICENSE file, and replace this line -->
 Not specified yet. Until a `LICENSE` file is added, all rights are reserved by the author.

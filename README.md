@@ -73,6 +73,93 @@ spike survives, rebuild it through the workflow instead of growing it.
 4. Maintain the PRD index and progress files on rename — stale traceability misleads more
    than none. Run the scanner before and after (`compare_scans.py`) to prove progress.
 
+## With vs without: concrete examples
+
+Taken from the two blog builds above (same scope, same stack). Left: freestyle. Right: kit.
+
+**Code** — mixed concerns vs one layer per file:
+
+```js
+// without: routing + SQL + HTML in one handler
+const user = me(req);                                   // who is me?
+const rows = db.prepare(`SELECT ... WHERE status='published' ...`).all(...);
+h += `<article><h2>${p.title}</h2>...`;                 // unescaped: stored XSS
+```
+
+```js
+// with: thin route calls a service, view escapes
+const user = sessionUser(db, parseCookies(req.headers.cookie).sid);
+sendJson(res, 200, { data: listPosts(db, user, page, perPage) });
+// views.js: ${escapeHtml(p.title)}
+```
+
+**Comment** — none vs contract plus header:
+
+```js
+// without: no header, one TODO left behind
+// TODO: verify cookie signature
+```
+
+```js
+// with: every created file carries this, every public unit a one-liner
+/**
+ * Resolves a signed cookie value to the public user row, or null.
+ *
+ * @author  0xLLVEL
+ * @ai      Muse Spark 1.3 (OpenCode)
+ */
+```
+
+**Commit** — one dump vs one logical change each:
+
+```text
+// without (1 commit total)
+docs(examples): add no-kit blog contrast demo
+```
+
+```text
+// with (8 commits, e.g.)
+feat(examples): add blog auth with roles and tests
+feat(examples): add blog posts, routes, and HTTP tests
+style(examples): design light theme for blog
+```
+
+**API** — ad hoc strings vs uniform shape:
+
+```json
+// without
+{ "error": "forbidden" }
+```
+
+```json
+// with
+{ "error": { "code": "FORBIDDEN", "message": "Forbidden." } }
+```
+
+**Design** — styled immediately vs skeleton first:
+
+```html
+<!-- without: inline style in the first commit -->
+<style>body{font-family:Arial;background:#f5f5f5...}</style>
+<button onclick="eq()" style="grid-column: span 2">=</button>
+```
+
+```html
+<!-- with: skeleton (no class/style/CSS), styling in a later commit -->
+<main>
+  <h1 data-i18n="calculator.title"></h1>
+  <div id="display" role="status"></div>
+</main>
+```
+
+**Tests** — none vs every requirement connected:
+
+```text
+// without: opened once in a browser, manually
+// with: 14/14 node --test; docs/prd-reference maps AC-F001-1..AC-F003-2
+//        and T-001/T-002 to test names and code symbols
+```
+
 ## The audit scanner
 
 `skills/project-audit/scripts/scan.py` is a read-only, standard-library-only scanner. It reports **heuristics**, not verdicts:

@@ -1,0 +1,10 @@
+{
+  "blog.title": "Blog",
+  "blog.login": "Login",
+  "blog.logout": "Logout",
+  "blog.register": "Register",
+  "auth.invalid": "Invalid username or password.",
+  "posts.empty": "No posts yet.",
+  "posts.delete-confirm": "Delete this post?",
+  "error.forbidden": "Forbidden."
+}

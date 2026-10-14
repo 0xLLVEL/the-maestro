@@ -7,6 +7,22 @@ audit found, and prepare a release.
 It does not generate code by itself. It tells an agent *how* to work in your repository, and ships scripts that check the
 agent's work (and your repository) against the same rules.
 
+## What it does
+
+AI agents write code fast and forget everything between sessions. The kit fixes the
+forgetting, not the writing:
+
+1. **Plans before coding** — the agent writes a short PRD and waits for your approval.
+   No code before the plan is agreed.
+2. **Builds in verifiable steps** — phase by phase, tests with the code, small commits,
+   progress and PRD-code index updated at phase close.
+3. **Audits honestly** — a read-only scanner reports heuristics; every finding is
+   confirmed by reading the code before it counts.
+4. **Refactors safely** — from the approved audit plan, one module at a time, with
+   characterization tests and before/after comparison.
+5. **Releases cleanly** — version from commits, changelog from history, release PR
+   without touching tags or deploys on its own.
+
 ## What is inside
 
 ```

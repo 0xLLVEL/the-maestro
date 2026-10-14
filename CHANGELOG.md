@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+## [0.1.1] - 2026-10-14
+
+### Fixed
+- Audit scanner secret detection: added modern token formats (`github_pat_`, `gho_`/`ghu_`/`ghs_`/`ghr_`,
+  `ghsa_`, Google `AIza`), stopped skipping lines that touch env accessors, flag `*_API_KEY` public env
+  names, track `.env.*` variants in Git, and detect `os.environ.get()`, PHP `getenv()`, and lowercase
+  `todo`-style markers.
+- `prd_tasks.py verify` no longer reports false OK: route matching is exact (with an explicit API-version
+  compatibility check) instead of suffix matching, and code symbols match on identifier boundaries
+  (`cancelOrder` no longer matches `cancelOrders`).
+- Standards contradictions resolved: the 30-line writing guideline vs the 50-line audit heuristic, the
+  `never new` rule (value objects, DTOs, and exceptions excluded), the frontend server-endpoint loophole
+  (forward-only), PRD-index and CHANGELOG items scoped to work that has a PRD/a release, and removed
+  references to missing `CONVENTIONS.md`/glossary files.
+
 ## [0.1.0] - 2026-10-14
 
 First public release.

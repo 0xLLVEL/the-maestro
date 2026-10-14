@@ -221,8 +221,12 @@ def git_info(root):
     ok = len([s for s in subjects if CONVENTIONAL.match(s)])
     info["conventional_commits_ratio"] = round(ok / len(subjects), 2) if subjects else None
     findings = []
-    if run("ls-files", "--error-unmatch", ".env")[0] == 0:
-        findings.append({"file": ".env", "line": 0, "note": "tracked in Git"})
+    _, tracked = run("ls-files")
+    for line in tracked.splitlines():
+        p = line.strip().strip('"')
+        base = p.rsplit("/", 1)[-1] if "/" in p else p
+        if base == ".env" or base.startswith(".env."):
+            findings.append({"file": p, "line": 0, "note": "tracked in Git"})
     return info, findings
 
 
@@ -256,7 +260,7 @@ def main():
         n = p.name
         if n.startswith(".env"):
             for i, l in enumerate(read(p).splitlines(), start=1):
-                if re.match(r"\s*(export\s+)?(NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(SECRET|PASSWORD|PRIVATE|TOKEN)\w*\s*=", l):
+                if re.match(r"\s*(export\s+)?(NEXT_PUBLIC|NUXT_PUBLIC|VITE|REACT_APP|VUE_APP|GATSBY|EXPO_PUBLIC|PUBLIC)_\w*(SECRET|PASSWORD|PRIVATE|TOKEN|KEY)\w*\s*=", l):
                     sc.add("frontend.public-env-secret", p.relative_to(root).as_posix(), i, "variable name")
         if (n.startswith(".env") and n != ".env.example") or (p.suffix in secret_exts and not n.endswith(".lock") and "lock" not in n):
             for i, l in enumerate(read(p).splitlines(), start=1):
